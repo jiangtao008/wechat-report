@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{GROUP_NAME}} 群聊动态报告</title>
+  <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.3/src/wordcloud2.min.js"></script>
+  <style>
+    :root {
+      --bg: #050816;
+      --panel: rgba(10, 18, 38, 0.88);
+      --panel-strong: rgba(14, 25, 52, 0.96);
+      --line: rgba(90, 150, 255, 0.22);
+      --text: #dbe7ff;
+      --muted: #8ea4d4;
+      --cyan: #4de2ff;
+      --blue: #5b8cff;
+      --green: #3bf0c3;
+      --glow: 0 0 24px rgba(77, 226, 255, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(91, 140, 255, 0.24), transparent 28%),
+        radial-gradient(circle at top right, rgba(77, 226, 255, 0.18), transparent 24%),
+        linear-gradient(180deg, #040712 0%, #081022 52%, #050816 100%);
+      min-height: 100vh;
+      padding: 28px;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, rgba(9, 16, 34, 0.92), rgba(6, 11, 24, 0.94));
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--glow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .container::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent 0, rgba(77, 226, 255, 0.04) 50%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .hero {
+      padding: 40px 40px 28px;
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(135deg, rgba(77, 226, 255, 0.08), transparent 45%),
+        linear-gradient(180deg, rgba(91, 140, 255, 0.08), transparent 60%);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 6px 12px;
+      border: 1px solid rgba(77, 226, 255, 0.35);
+      border-radius: 999px;
+      color: var(--cyan);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.2;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .section {
+      padding: 28px 40px;
+      border-top: 1px solid rgba(90, 150, 255, 0.12);
+    }
+
+    h2 {
+      margin: 0 0 18px;
+      font-size: 20px;
+      color: #eef5ff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h2::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      box-shadow: 0 0 12px rgba(77, 226, 255, 0.45);
+    }
+
+    ul, ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    li {
+      margin-bottom: 14px;
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, var(--panel), var(--panel-strong));
+      border: 1px solid rgba(90, 150, 255, 0.16);
+    }
+
+    strong {
+      color: #ffffff;
+    }
+
+    .ai-note {
+      display: block;
+      margin-top: 8px;
+      color: var(--green);
+      font-size: 14px;
+    }
+
+    .topic-title {
+      display: block;
+      position: relative;
+      margin-bottom: 12px;
+      padding: 12px 16px 12px 18px;
+      border-radius: 14px;
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.4;
+      color: #f6fbff;
+      letter-spacing: 0.02em;
+      background:
+        linear-gradient(90deg, rgba(77, 226, 255, 0.16), rgba(91, 140, 255, 0.08) 55%, rgba(91, 140, 255, 0.02));
+      border: 1px solid rgba(77, 226, 255, 0.18);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 0 18px rgba(77, 226, 255, 0.08);
+    }
+
+    .topic-title::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 10px;
+      bottom: 10px;
+      width: 4px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--cyan), var(--blue));
+      box-shadow: 0 0 16px rgba(77, 226, 255, 0.45);
+    }
+
+    .topic-step {
+      display: block;
+      margin-top: 4px;
+      color: #c9d8f8;
+      line-height: 1.75;
+    }
+
+    .topic-act {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      color: var(--cyan);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+
+    .highlight-quote {
+      margin-top: 10px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(77, 226, 255, 0.08);
+      border: 1px solid rgba(77, 226, 255, 0.16);
+    }
+
+    .highlight-text {
+      display: block;
+      color: #eef5ff;
+      line-height: 1.8;
+    }
+
+    .highlight-author {
+      display: block;
+      margin-top: 8px;
+      text-align: right;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .topic-participants {
+      display: block;
+      margin-top: 10px;
+      color: #9db5e6;
+      font-size: 13px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .summary-card {
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, var(--panel), var(--panel-strong));
+      border: 1px solid rgba(90, 150, 255, 0.16);
+    }
+
+    .summary-label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .summary-value {
+      display: block;
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .summary-line {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(12, 20, 42, 0.88), rgba(8, 14, 30, 0.94));
+      border: 1px solid rgba(90, 150, 255, 0.16);
+      color: #dbe7ff;
+    }
+
+    .summary-line-label {
+      color: var(--muted);
+      margin-right: 8px;
+    }
+
+    .rank-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .rank-main {
+      font-weight: 600;
+    }
+
+    .star-note {
+      display: block;
+      margin-top: 10px;
+      color: #ffd787;
+      line-height: 1.75;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(77, 226, 255, 0.12);
+      border: 1px solid rgba(77, 226, 255, 0.22);
+      color: var(--cyan);
+      font-size: 12px;
+    }
+
+    .word-cloud-card {
+      padding: 18px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(13, 22, 46, 0.92), rgba(8, 14, 30, 0.96));
+      border: 1px solid rgba(90, 150, 255, 0.18);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .word-cloud-title {
+      text-align: center;
+      color: #b9cbff;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      letter-spacing: 0.06em;
+    }
+
+    .word-cloud-canvas {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .footer {
+      padding: 22px 40px 34px;
+      color: #6f86b7;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 14px;
+      }
+
+      .hero,
+      .section,
+      .footer {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <div class="eyebrow">群聊情报报告</div>
+      <h1>{{GROUP_NAME}} 群聊{{REPORT_TYPE}}（{{DATE_RANGE}}）</h1>
+      <div class="subtitle">{{SUMMARY_BLURB}}</div>
+    </div>
+
+    <div class="section">
+      <h2>区间总览</h2>
+      <div class="summary-grid">
+        {{SUMMARY_CARDS}}
+      </div>
+      {{SUMMARY_LINE}}
+    </div>
+
+    <div class="section">
+      <h2>群聊热点话题</h2>
+      <ul>
+        {{HOT_TOPICS}}
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>区间活跃之星</h2>
+      <ol>
+        {{ACTIVE_STARS}}
+      </ol>
+    </div>
+
+    <div class="section">
+      <h2>关键词云</h2>
+      <div class="word-cloud-card">
+        <div class="word-cloud-title">AI 社群关键词云</div>
+        <canvas id="cloud" class="word-cloud-canvas" width="860" height="560"></canvas>
+      </div>
+    </div>
+
+    <div class="footer">
+      报告由 Codex 基于微信群聊记录生成
+    </div>
+  </div>
+  <script>
+    const words = {{WORD_CLOUD_DATA}};
+
+    WordCloud(document.getElementById('cloud'), {
+      list: words,
+      gridSize: 10,
+      weightFactor: 3,
+      fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
+      backgroundColor: 'rgba(0,0,0,0)',
+      rotateRatio: 0.35,
+      minSize: 16,
+      shrinkToFit: true,
+      drawOutOfBound: false,
+      color: function () {
+        const colors = [
+          '#4de2ff',
+          '#7b61ff',
+          '#5b8cff',
+          '#9c7dff',
+          '#6a5acd',
+          '#b39ddb'
+        ];
+
+        return colors[Math.floor(Math.random() * colors.length)];
+      }
+    });
+  </script>
+</body>
+</html>

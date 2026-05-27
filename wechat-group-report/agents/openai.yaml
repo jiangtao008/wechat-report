@@ -1,0 +1,4 @@
+interface:
+  display_name: "微信群报告"
+  short_description: "分析群聊记录并生成黑色科技风 HTML 报告文件"
+  default_prompt: "使用 $wechat-group-report 分析微信群聊记录，并生成一份黑色科技风的 HTML 报告文件。"
