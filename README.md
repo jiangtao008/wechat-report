@@ -4,8 +4,8 @@
 
 当前目录里的周报产物示例：
 
-- [wechat-report-2026-05-24.html](/Users/jiangtao/Documents/vx周报/wechat-report-2026-05-24.html)
-- [微信群日报_2026-05-24.html](/Users/jiangtao/Documents/vx周报/微信群日报_2026-05-24.html)
+<img width="1922" height="2460" alt="image" src="https://github.com/user-attachments/assets/0106e651-9e5a-496d-bac5-4a860656ac1c" />
+
 
 ## 项目定位
 
