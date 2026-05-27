@@ -1,213 +1,654 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>长沙特斯拉车友群 群聊动态报告</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500&display=swap');
-        body {
-            font-family: 'Noto Sans SC', sans-serif;
-            background-color: #f4f0f8;
-            color: #4a4a4a;
-            line-height: 1.8;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 800px;
-            margin: 20px auto;
-            background-color: #ffffff;
-            border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(106, 90, 205, 0.1);
-            padding: 30px 40px;
-            border-left: 5px solid #9370DB;
-        }
-        h1 {
-            color: #6A5ACD;
-            text-align: center;
-            border-bottom: 2px solid #e6e0f0;
-            padding-bottom: 15px;
-            margin-bottom: 25px;
-            font-weight: 500;
-        }
-        h2 {
-            color: #8A2BE2;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            margin-top: 35px;
-            font-weight: 500;
-        }
-        ul, ol {
-            list-style-type: none;
-            padding-left: 0;
-        }
-        li {
-            background-color: #f9f7fc;
-            margin-bottom: 12px;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #C7B3E5;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        li:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 15px rgba(106, 90, 205, 0.08);
-        }
-        strong {
-            color: #6A5ACD;
-            font-weight: 500;
-        }
-        .word-cloud-container {
-            text-align: center;
-            padding: 20px 10px;
-            background-color: #f9f7fc;
-            border-radius: 8px;
-        }
-        .word-tag {
-            display: inline-block;
-            background-color: #e6e0f0;
-            color: #6A5ACD;
-            padding: 5px 12px;
-            margin: 5px;
-            border-radius: 15px;
-            font-size: 0.95em;
-            font-weight: 500;
-            transition: background-color 0.3s, color 0.3s;
-            cursor: default;
-        }
-        .word-tag:hover {
-            background-color: #9370DB;
-            color: #fff;
-        }
-        .tag {
-            display: inline-block;
-            margin-left: 10px;
-            padding: 2px 10px;
-            background: #e8ddff;
-            color: #7b4fd6;
-            border-radius: 12px;
-            font-size: 12px;
-        }
-        .quote {
-            font-style: italic;
-            color: #666;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            font-size: 0.9em;
-            color: #999;
-        }
-        .ai-comment {
-            margin-top: 8px;
-            padding: 10px;
-            background: #f3effc;
-            border-radius: 8px;
-            color: #6b5aa6;
-            font-size: 14px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tesla特特特能说 群聊周报</title>
+  <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.3/src/wordcloud2.min.js"></script>
+  <style>
+    :root {
+      --bg: #050816;
+      --panel: rgba(10, 18, 38, 0.88);
+      --panel-strong: rgba(14, 25, 52, 0.96);
+      --line: rgba(90, 150, 255, 0.22);
+      --text: #dbe7ff;
+      --muted: #8ea4d4;
+      --cyan: #4de2ff;
+      --blue: #5b8cff;
+      --green: #3bf0c3;
+      --glow: 0 0 24px rgba(77, 226, 255, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(91, 140, 255, 0.24), transparent 28%),
+        radial-gradient(circle at top right, rgba(77, 226, 255, 0.18), transparent 24%),
+        linear-gradient(180deg, #040712 0%, #081022 52%, #050816 100%);
+      min-height: 100vh;
+      padding: 28px;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, rgba(9, 16, 34, 0.92), rgba(6, 11, 24, 0.94));
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--glow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .container::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent 0, rgba(77, 226, 255, 0.04) 50%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .hero {
+      padding: 40px 40px 28px;
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(135deg, rgba(77, 226, 255, 0.08), transparent 45%),
+        linear-gradient(180deg, rgba(91, 140, 255, 0.08), transparent 60%);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 6px 12px;
+      border: 1px solid rgba(77, 226, 255, 0.35);
+      border-radius: 999px;
+      color: var(--cyan);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.2;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .section {
+      padding: 28px 40px;
+      border-top: 1px solid rgba(90, 150, 255, 0.12);
+    }
+
+    h2 {
+      margin: 0 0 18px;
+      font-size: 20px;
+      color: #eef5ff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h2::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      box-shadow: 0 0 12px rgba(77, 226, 255, 0.45);
+    }
+
+    ul, ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    li {
+      margin-bottom: 14px;
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, var(--panel), var(--panel-strong));
+      border: 1px solid rgba(90, 150, 255, 0.16);
+    }
+
+    strong {
+      color: #ffffff;
+    }
+
+    .ai-note {
+      display: block;
+      margin-top: 8px;
+      color: var(--green);
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .topic-title {
+      display: block;
+      position: relative;
+      margin-bottom: 12px;
+      padding: 12px 16px 12px 18px;
+      border-radius: 14px;
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.4;
+      color: #f6fbff;
+      letter-spacing: 0.02em;
+      background:
+        linear-gradient(90deg, rgba(77, 226, 255, 0.16), rgba(91, 140, 255, 0.08) 55%, rgba(91, 140, 255, 0.02));
+      border: 1px solid rgba(77, 226, 255, 0.18);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 0 18px rgba(77, 226, 255, 0.08);
+    }
+
+    .topic-title::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 10px;
+      bottom: 10px;
+      width: 4px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--cyan), var(--blue));
+      box-shadow: 0 0 16px rgba(77, 226, 255, 0.45);
+    }
+
+    .topic-step {
+      display: block;
+      margin-top: 4px;
+      color: #c9d8f8;
+      line-height: 1.75;
+    }
+
+    .topic-act {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      color: var(--cyan);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+
+    .highlight-quote {
+      margin-top: 10px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(77, 226, 255, 0.08);
+      border: 1px solid rgba(77, 226, 255, 0.16);
+    }
+
+    .highlight-text {
+      display: block;
+      color: #eef5ff;
+      line-height: 1.8;
+    }
+
+    .highlight-author {
+      display: block;
+      margin-top: 8px;
+      text-align: right;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .topic-participants {
+      display: block;
+      margin-top: 10px;
+      color: #9db5e6;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .summary-card {
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, var(--panel), var(--panel-strong));
+      border: 1px solid rgba(90, 150, 255, 0.16);
+    }
+
+    .summary-label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .summary-value {
+      display: block;
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .summary-line {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(12, 20, 42, 0.88), rgba(8, 14, 30, 0.94));
+      border: 1px solid rgba(90, 150, 255, 0.16);
+      color: #dbe7ff;
+      line-height: 1.8;
+    }
+
+    .summary-line-label {
+      color: var(--muted);
+      margin-right: 8px;
+    }
+
+    .rank-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .rank-main {
+      font-weight: 600;
+    }
+
+    .star-note {
+      display: block;
+      margin-top: 10px;
+      color: #ffd787;
+      line-height: 1.75;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(77, 226, 255, 0.12);
+      border: 1px solid rgba(77, 226, 255, 0.22);
+      color: var(--cyan);
+      font-size: 12px;
+    }
+
+    .word-cloud-card {
+      padding: 18px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(13, 22, 46, 0.92), rgba(8, 14, 30, 0.96));
+      border: 1px solid rgba(90, 150, 255, 0.18);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .word-cloud-title {
+      text-align: center;
+      color: #b9cbff;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      letter-spacing: 0.06em;
+    }
+
+    .word-cloud-canvas {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .footer {
+      padding: 22px 40px 34px;
+      color: #6f86b7;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 14px;
+      }
+
+      .hero,
+      .section,
+      .footer {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>长沙特斯拉车友群 群聊日报 (2026-05-24 晚间时段)</h1>
-
-        <h2>🌟 群聊热点话题</h2>
-        <ul>
-            <li>
-                <strong>热点一：长沙夜宵与探店分享持续刷屏</strong><br>
-                群友围绕“桥下炸铺”的香蕉炼乳吐司展开热烈讨论，从口感、分量到甜度都进行了细节交流，还延伸出了长沙本地美食与足浴店推荐。整体氛围偏生活化、轻松化，深夜“报复性美食聊天”味道浓厚。
-                <div class="ai-comment">
-                    AI点评：这是典型高黏性熟人群特征——“美食+位置共享+互相种草”会快速激活大量低门槛互动，说明群成员现实关系与线下活动连接度较高。
-                </div>
-            </li>
-
-            <li>
-                <strong>热点二：动漫、电视剧与B站内容推荐</strong><br>
-                《凡人修仙传》《灵笼》《牧神记》《剑来》《斗罗2》等作品成为讨论核心，成员们不仅交流追更情况，还对制作公司、剧情质量和“爽感”展开评价，动漫党浓度明显偏高。
-                <div class="ai-comment">
-                    AI点评：群体内容偏好呈现明显“男性技术宅+二次元”特征，热衷长线世界观、升级流与高燃动画，对国产动画接受度非常高。
-                </div>
-            </li>
-
-            <li>
-                <strong>热点三：平板、华为折叠屏与设备使用习惯</strong><br>
-                从“平板拿来干嘛”一路聊到王者荣耀、三角洲、mini尺寸、高刷、华为三折叠，甚至延伸到“喜欢小而精还是大屏设备”的个人偏好，形成典型数码闲聊局。
-                <div class="ai-comment">
-                    AI点评：群成员对电子产品有明显兴趣，但讨论并不参数党化，而更偏真实使用体验，说明这是一个“轻极客型社群”。
-                </div>
-            </li>
-
-            <li>
-                <strong>热点四：长沙高温与空调生存模式</strong><br>
-                晚间温度、车机显示温度、吹空调与“命交给空调了”等话题，引发大量共鸣。长沙闷热天气成功成为群内后半场聊天主线。
-                <div class="ai-comment">
-                    AI点评：天气类话题是典型“低认知负担社交润滑剂”，尤其在夜间群聊中，非常容易形成连续接龙式互动。
-                </div>
-            </li>
-        </ul>
-
-        <h2>🏆 区间活跃之星</h2>
-        <ol>
-            <li>🥇 <strong>Top 1:</strong> 好来 - 发言次数: 18 <span class="tag">动漫布道者</span></li>
-            <li>🥈 <strong>Top 2:</strong> Mr.Ling - 发言次数: 18 <span class="tag">梗王输出机</span></li>
-            <li>🥉 <strong>Top 3:</strong> ST - 发言次数: 17 <span class="tag">群聊气氛组</span></li>
-            <li><strong>Top 4:</strong> 风吹屁屁凉 - 发言次数: 14 <span class="tag">夜宵探店达人</span></li>
-            <li><strong>Top 5:</strong> Kerwin - 发言次数: 13 <span class="tag">社交组织核心</span></li>
-            <li><strong>Top 6:</strong> 张凯 - 发言次数: 10 <span class="tag">数码吐槽党</span></li>
-            <li><strong>Top 7:</strong> The - 发言次数: 10 <span class="tag">追番狂热者</span></li>
-            <li><strong>Top 8:</strong> 陈摄 - 发言次数: 8 <span class="tag">华为守护者</span></li>
-            <li><strong>Top 9:</strong> tsla-特烦恼03530 - 发言次数: 6 <span class="tag">天气播报员</span></li>
-            <li><strong>Top 10:</strong> 孔巍 - 发言次数: 6 <span class="tag">接梗大师</span></li>
-        </ol>
-
-        <h2>💬 区间群聊金句</h2>
-        <ul>
-            <li><span class="quote">“每喝一次酒背面就要增加一点裂痕。”</span> — <strong>张凯</strong></li>
-
-            <li><span class="quote">“灵笼，去吧，你还有一双没看过的眼睛。”</span> — <strong>好来</strong></li>
-
-            <li><span class="quote">“我已经把命交给空调了。”</span> — <strong>Mr.Ling</strong></li>
-
-            <li><span class="quote">“我还是喜欢小而精的东西。”</span> — <strong>张凯</strong></li>
-
-            <li><span class="quote">“这个群是给你找不到一点妹子。”</span> — <strong>Kerwin</strong></li>
-
-            <li><span class="quote">“话费一个月交一次，网费一年交一次。”</span> — <strong>孔巍</strong></li>
-        </ul>
-
-        <h2>☁️ 关键词云</h2>
-        <div class="word-cloud-container">
-            <span class="word-tag">长沙</span>
-            <span class="word-tag">动漫</span>
-            <span class="word-tag">平板</span>
-            <span class="word-tag">华为</span>
-            <span class="word-tag">空调</span>
-            <span class="word-tag">喝酒</span>
-            <span class="word-tag">王者</span>
-            <span class="word-tag">炸铺</span>
-            <span class="word-tag">香蕉吐司</span>
-            <span class="word-tag">炼乳</span>
-            <span class="word-tag">灵笼</span>
-            <span class="word-tag">凡人修仙传</span>
-            <span class="word-tag">追剧</span>
-            <span class="word-tag">B站</span>
-            <span class="word-tag">高刷</span>
-            <span class="word-tag">三折叠</span>
-            <span class="word-tag">三角洲</span>
-            <span class="word-tag">王者荣耀</span>
-            <span class="word-tag">烧烤</span>
-            <span class="word-tag">天气</span>
-            <span class="word-tag">夜宵</span>
-            <span class="word-tag">特斯拉</span>
-            <span class="word-tag">车机</span>
-            <span class="word-tag">追番</span>
-        </div>
-
-        <div class="footer">
-            <p>报告由 AI 群聊动态分析引擎生成</p>
-        </div>
+  <div class="container">
+    <div class="hero">
+      <div class="eyebrow">群聊情报报告</div>
+      <h1>Tesla特特特能说 群聊周报（2026-05-20 至 2026-05-27）</h1>
+      <div class="subtitle">这一周的主旋律很明确：车主群表面聊特斯拉，实际同时经营贴膜福利、FSD 幻想、暴雨路况、酒局邀约和咖啡续命。专业信息和生活废话掺着飞，才是这群的真实稳定结构。</div>
     </div>
+
+    <div class="section">
+      <h2>区间总览</h2>
+      <div class="summary-grid">
+        <div class="summary-card">
+          <span class="summary-label">总发言数</span>
+          <span class="summary-value">12367</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">活跃参与人数</span>
+          <span class="summary-value">86</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">最热时段</span>
+          <span class="summary-value">11 点档 1395 条</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">统计跨度</span>
+          <span class="summary-value">8 天</span>
+        </div>
+      </div>
+      <div class="summary-line">
+        <span class="summary-line-label">高频情绪</span>
+        拱火、实用、嘴碎、热闹。高峰集中在 5 月 26 日和 5 月 27 日，单日都接近 3000 条；真正能稳住全周讨论的，不是宏大新闻，而是“免费贴膜到底值不值”“FSD 到底来没来”“长沙暴雨会不会淹车”“今晚谁喝酒”这几类长期有效的问题。
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>群聊热点话题</h2>
+      <ul>
+        <li>
+          <span class="topic-title">免费贴膜福利是本周最强硬通货，群友反应比抢演唱会还快</span>
+          <span class="topic-act">第一幕：福利帖落地</span>
+          <span class="topic-step">5 月 20 日下午，老y免费贴膜抛出“还有 8 个名额”，随后补上完整活动转发：26 台老款 Model Y、长沙会展中心、价值 7000 元圣戈班量子膜、还附带部分车衣施工。</span>
+          <span class="topic-step">群里立刻进入资格审查模式，黑色和星空灰能不能上、贴过改色膜能不能撕了重来、车要放两天值不值，全都有人接着问。</span>
+          <span class="topic-act">第二幕：信息差变报名焦虑</span>
+          <span class="topic-step">“已经凑齐18台了”“还有8个名额家人们” 这种倒计时话术把群聊节奏拉得很满，原本只是贴膜信息，最后硬生生聊成了稀缺资源竞拍。</span>
+          <span class="topic-step">后续还不断外溢到玻璃水、车衣、洗车和车漆维护，说明这群对“白嫖型车务福利”的敏感度远高于抽象参数争论。</span>
+          <div class="highlight-quote">
+            <span class="highlight-text">点睛之笔：“老y有人想免费贴膜吗家人们 还有8个名额”</span>
+            <span class="highlight-author">老y免费贴膜</span>
+          </div>
+          <span class="ai-note">AI 锐评：本周最有号召力的不是品牌新闻，而是“0 元贴膜”。在车主群里，免费永远比先进更有传播力。</span>
+          <span class="topic-participants">主要参与者：老y免费贴膜、蜡笔老滔（加我天天涨停）488、天弟-在线3219铁牌技师（进阶中)、640、熙哥-191号退役金牌技师</span>
+        </li>
+
+        <li>
+          <span class="topic-title">FSD、焕新 Y 和特斯拉 AI 新闻，把群里拉回“车友群本职工作”</span>
+          <span class="topic-act">第一幕：链接密集轰炸</span>
+          <span class="topic-step">周中围绕“监督版 FSD 登陆中国”“车机 AI 大模型升级”“焕新 Y 到底值不值”接连出现多篇链接，群里进入半新闻联播、半情绪宣泄状态。</span>
+          <span class="topic-step">有人问“谁有 fsd 的，写个八百字使用感受”，有人直接吐槽“事实也确实是车都 4 万公里了 fsd 满血还没进来”，热情和幻灭感并存。</span>
+          <span class="topic-act">第二幕：价格和可用性互相打架</span>
+          <span class="topic-step">讨论很快从“官宣了没有”切到“到底能不能用”“秒开通是不是真的”“二手 FSD 划不划算”，典型群聊式技术讨论：先转消息，再拼渠道，最后回到价格。</span>
+          <span class="topic-step">“别被误导！官宣不等于可用” 这类发言就是本周智驾情绪的核心：大家都想要，但没人真敢先完全信。</span>
+          <div class="highlight-quote">
+            <span class="highlight-text">点睛之笔：“别被误导！官宣不等于可用”</span>
+            <span class="highlight-author">焕新Y韭菜园园长-9177</span>
+          </div>
+          <span class="ai-note">AI 锐评：这段最像真车友群日常，嘴上全是“垃圾特斯拉”，眼睛却一刻没离开 FSD 和焕新 Y 的任何新风声。</span>
+          <span class="topic-participants">主要参与者：Y-03530特烦恼、焕新Y韭菜园园长-9177、640、熙哥-191号退役金牌技师、老 3-BK4188</span>
+        </li>
+
+        <li>
+          <span class="topic-title">长沙暴雨把群聊临时改造成路况播报台和挪车指挥部</span>
+          <span class="topic-act">第一幕：预警先来，情绪后到</span>
+          <span class="topic-step">5 月 22 日下午到深夜，“马上要暴雨了”“大大大暴雨”“暴雨红色预警” 连续刷屏，讨论从天气吐槽迅速切换到“地下室会不会淹”“今晚还拼不拼电”的现实风险。</span>
+          <span class="topic-step">到了夜里和次日凌晨，群友开始汇报各区状态：“好多路被淹了”“长沙县淹得更快”“我已经看到有油车被淹了一半了”，本地实况比官方播报更细。</span>
+          <span class="topic-act">第二幕：车主群的典型应激反应</span>
+          <span class="topic-step">有人起床挪车，有人判断哪里能走，有人顺手嘲物业费白交了。天气在这里不是背景，而是直接影响车辆停放、充电和出门路径的硬条件。</span>
+          <span class="topic-step">这段还带出一个很车主化的细节：下雨天讨论永远会自动延展到玻璃水、油膜、车库和视野问题，暴雨就是整个用车生态的总开关。</span>
+          <div class="highlight-quote">
+            <span class="highlight-text">点睛之笔：“我已经看到有油车被淹了一半了”</span>
+            <span class="highlight-author">（聚会除了071所有人都去了）</span>
+          </div>
+          <span class="ai-note">AI 锐评：当暴雨真的砸下来，群里最可靠的信息源不是新闻账号，而是正在路上、正在看车库、正在决定要不要下楼的人。</span>
+          <span class="topic-participants">主要参与者：Y-03530特烦恼、（聚会除了071所有人都去了）、生铁棍、龚律师AA80727、73973、橘子 3-9309</span>
+        </li>
+
+        <li>
+          <span class="topic-title">喝酒、咖啡和 520 式社交，是这周最稳定的副主线</span>
+          <span class="topic-act">第一幕：520 开了个坏头</span>
+          <span class="topic-step">周报起点就很群味：工资短信被拿来“手滑”发群，紧跟着是“今天 520，谈得来”“52 个 0 元红包”，整套流程说明大家对仪式感的理解主打一个能玩梗就算过节。</span>
+          <span class="topic-step">随后几天，“今晚喝不喝”“来万家丽喝酒么”“洗个头发，来找你喝咖啡”“你也喝酒？” 轮流出现，酒局和咖啡局几乎成了每天都会刷新的一条日常线程。</span>
+          <span class="topic-act">第二幕：邀约比成行更重要</span>
+          <span class="topic-step">真正成没成局其实没那么关键，关键是群里永远有人在邀、有人在装不喝、有人在顺手拱火，再配上“带妹妹吗”“不白走”“我平常在家里自己喝要喝半斤”这类夸张话术，局的气味已经够了。</span>
+          <span class="topic-step">这也解释了为什么群内高频人物能长期霸榜：他们未必都在输出专业信息，但都在稳定制造可接话的社交接口。</span>
+          <div class="highlight-quote">
+            <span class="highlight-text">点睛之笔：“喝酒没有固定的格式”</span>
+            <span class="highlight-author">Y-03530特烦恼</span>
+          </div>
+          <span class="ai-note">AI 锐评：这群最厉害的地方不是总能把酒喝起来，而是总能把“喝不喝”聊得像一场大型连续剧预告片。</span>
+          <span class="topic-participants">主要参与者：蜡笔老滔（加我天天涨停）488、Y-03530特烦恼、龚律师AA80727、好来-0593、姨姨-湘AD50250、凯311</span>
+        </li>
+
+        <li>
+          <span class="topic-title">保险、玻璃水、充电和睡车里，把车主生活细节聊成了民间知识库</span>
+          <span class="topic-act">第一幕：谁都能临时当顾问</span>
+          <span class="topic-step">群里这一周没少出现“保险王是谁”“选保险先看公司和车损保额”“平安最好沟通”这种问答，说明大家把群当成了低门槛咨询台。</span>
+          <span class="topic-step">玻璃水和油膜那一段也很典型，从“特斯拉原厂玻璃水”到“我可以不洗车，但一定要刮玻璃”，看似琐碎，但互动量很高，因为实用。</span>
+          <span class="topic-act">第二幕：车当生活场景，不只是交通工具</span>
+          <span class="topic-step">“前天在酒店充电，直接地下车库睡车里”“睡车里不冷，就是缺氧”这类发言，把特斯拉使用场景延展到了住宿、充电、休息和应急环境。</span>
+          <span class="topic-step">真正让群活下来的往往不是大新闻，而是这种细枝末节的经验交换，密度不高，但复用率极高。</span>
+          <div class="highlight-quote">
+            <span class="highlight-text">点睛之笔：“我可以不洗车，但我一定要刮玻璃”</span>
+            <span class="highlight-author">哈哈</span>
+          </div>
+          <span class="ai-note">AI 锐评：真正耐聊的话题从来不宏大，最好是“今天就可能用上”，而玻璃水、保险和充电正好都属于这种车主民生。</span>
+          <span class="topic-participants">主要参与者：特斯拉宇哥A Az8999、哈哈、天弟-在线3219铁牌技师（进阶中)、生铁棍、老y免费贴膜、01</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>区间活跃之星</h2>
+      <ol>
+        <li>
+          <div class="rank-item">
+            <span class="rank-main">蜡笔老滔（加我天天涨停）488</span>
+            <strong>1844 条发言</strong>
+          </div>
+          <span class="star-note">AI 锐评：本周绝对核心发射器，几乎每个主题都有他在接、在拱、在扯，群聊节奏感很大一部分是他硬推出来的。</span>
+          <div class="tag-row">
+            <span class="tag">节奏轴心</span>
+            <span class="tag">梗王</span>
+            <span class="tag">全天在线</span>
+          </div>
+        </li>
+        <li>
+          <div class="rank-item">
+            <span class="rank-main">生铁棍</span>
+            <strong>1131 条发言</strong>
+          </div>
+          <span class="star-note">AI 锐评：常年承担“补一句更狠的”职责，车务、天气、酒局都能插嘴，而且很少废话，命中率高。</span>
+          <div class="tag-row">
+            <span class="tag">补刀位</span>
+            <span class="tag">持续输出</span>
+            <span class="tag">高存在感</span>
+          </div>
+        </li>
+        <li>
+          <div class="rank-item">
+            <span class="rank-main">Y-03530特烦恼</span>
+            <strong>1070 条发言</strong>
+          </div>
+          <span class="star-note">AI 锐评：FSD、暴雨、喝酒、长沙气温，他总能把一个普通问题提成全群都能接的公共话题。</span>
+          <div class="tag-row">
+            <span class="tag">提问发动机</span>
+            <span class="tag">氛围组</span>
+            <span class="tag">多线并发</span>
+          </div>
+        </li>
+        <li>
+          <div class="rank-item">
+            <span class="rank-main">（聚会除了071所有人都去了）</span>
+            <strong>1061 条发言</strong>
+          </div>
+          <span class="star-note">AI 锐评：群内老梗本人化，一旦出现就自带剧情推进能力，尤其擅长把线下局、路况和临场信息拉进讨论。</span>
+          <div class="tag-row">
+            <span class="tag">线下情报</span>
+            <span class="tag">剧情角色</span>
+            <span class="tag">高频接梗</span>
+          </div>
+        </li>
+        <li>
+          <div class="rank-item">
+            <span class="rank-main">01</span>
+            <strong>926 条发言</strong>
+          </div>
+          <span class="star-note">AI 锐评：像群里的静态底噪来源，出现频率高，内容分布广，常在各种实用小问题里补上关键一脚。</span>
+          <div class="tag-row">
+            <span class="tag">稳定在线</span>
+            <span class="tag">民生向</span>
+            <span class="tag">补位型</span>
+          </div>
+        </li>
+        <li>
+          <div class="rank-item">
+            <span class="rank-main">640</span>
+            <strong>601 条发言</strong>
+          </div>
+          <span class="star-note">AI 锐评：数码、FSD、玻璃水、身边人八卦都能接，属于能把任何题目聊到更具体的人。</span>
+          <div class="tag-row">
+            <span class="tag">杂食型输出</span>
+            <span class="tag">细节补充</span>
+            <span class="tag">高覆盖率</span>
+          </div>
+        </li>
+        <li>
+          <div class="rank-item">
+            <span class="rank-main">老y免费贴膜</span>
+            <strong>589 条发言</strong>
+          </div>
+          <span class="star-note">AI 锐评：这周的最大信息源之一，靠一条免费贴膜消息把自己从普通成员抬成了全群围观中心。</span>
+          <div class="tag-row">
+            <span class="tag">福利中介</span>
+            <span class="tag">车务情报</span>
+            <span class="tag">高转发值</span>
+          </div>
+        </li>
+        <li>
+          <div class="rank-item">
+            <span class="rank-main">天弟-在线3219铁牌技师（进阶中)</span>
+            <strong>559 条发言</strong>
+          </div>
+          <span class="star-note">AI 锐评：典型的车友群机动位，早上能聊睡车里缺氧，中午能聊保险，晚上还能去接酒局话题。</span>
+          <div class="tag-row">
+            <span class="tag">机动补位</span>
+            <span class="tag">生活流</span>
+            <span class="tag">全天候</span>
+          </div>
+        </li>
+        <li>
+          <div class="rank-item">
+            <span class="rank-main">熙哥-191号退役金牌技师</span>
+            <strong>508 条发言</strong>
+          </div>
+          <span class="star-note">AI 锐评：擅长把零散话题往“算账”“估值”“划不划算”上落，属于群里的成本收益分析师。</span>
+          <div class="tag-row">
+            <span class="tag">算账派</span>
+            <span class="tag">理性嘴碎</span>
+            <span class="tag">价格敏感</span>
+          </div>
+        </li>
+        <li>
+          <div class="rank-item">
+            <span class="rank-main">哈哈</span>
+            <strong>387 条发言</strong>
+          </div>
+          <span class="star-note">AI 锐评：虽然名字像反应词，但输出并不水，尤其在玻璃水、清洁和日常吐槽里辨识度很高。</span>
+          <div class="tag-row">
+            <span class="tag">清洁派</span>
+            <span class="tag">实用型</span>
+            <span class="tag">日常吐槽</span>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <div class="section">
+      <h2>关键词云</h2>
+      <div class="word-cloud-card">
+        <div class="word-cloud-title">AI 社群关键词云</div>
+        <canvas id="cloud" class="word-cloud-canvas" width="860" height="560"></canvas>
+      </div>
+    </div>
+
+    <div class="footer">
+      报告由 Codex 基于微信群聊记录生成
+    </div>
+  </div>
+  <script>
+    const words = [
+      ["贴膜", 190],
+      ["特斯拉", 160],
+      ["焕新Y", 132],
+      ["FSD", 128],
+      ["喝酒", 116],
+      ["暴雨", 102],
+      ["长沙", 96],
+      ["玻璃水", 88],
+      ["保险", 80],
+      ["充电", 76],
+      ["车衣", 72],
+      ["咖啡", 68],
+      ["Model Y", 64],
+      ["路况", 60],
+      ["工资", 56],
+      ["酒店", 50],
+      ["车库", 46],
+      ["空调", 42],
+      ["挪车", 40],
+      ["会展中心", 36]
+    ];
+
+    WordCloud(document.getElementById("cloud"), {
+      list: words,
+      gridSize: 10,
+      weightFactor: 0.55,
+      fontFamily: "\"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+      backgroundColor: "rgba(0,0,0,0)",
+      rotateRatio: 0.35,
+      minSize: 16,
+      shrinkToFit: true,
+      drawOutOfBound: false,
+      color: function () {
+        const colors = [
+          "#4de2ff",
+          "#7b61ff",
+          "#5b8cff",
+          "#9c7dff",
+          "#6a5acd",
+          "#b39ddb"
+        ];
+
+        return colors[Math.floor(Math.random() * colors.length)];
+      }
+    });
+  </script>
 </body>
 </html>
