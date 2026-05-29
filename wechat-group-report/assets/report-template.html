@@ -250,6 +250,48 @@
       color: #dbe7ff;
     }
 
+    .trend-card {
+      grid-column: 1 / -1;
+      padding: 22px 22px 18px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, var(--panel), var(--panel-strong));
+      border: 1px solid rgba(90, 150, 255, 0.16);
+    }
+
+    .trend-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      color: #b9cbff;
+      font-size: 13px;
+    }
+
+    .trend-title {
+      font-weight: 700;
+      color: #ffffff;
+      font-size: 15px;
+    }
+
+    .trend-canvas {
+      display: block;
+      width: 100%;
+      height: 260px;
+      border-radius: 14px;
+      background:
+        linear-gradient(to bottom, rgba(77, 226, 255, 0.04), rgba(255, 255, 255, 0.01)),
+        rgba(255, 255, 255, 0.01);
+      border: 1px solid rgba(90, 150, 255, 0.12);
+    }
+
+    .trend-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
     .summary-line-label {
       color: var(--muted);
       margin-right: 8px;
@@ -299,15 +341,6 @@
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
 
-    .word-cloud-title {
-      text-align: center;
-      color: #b9cbff;
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 14px;
-      letter-spacing: 0.06em;
-    }
-
     .word-cloud-canvas {
       display: block;
       width: 100%;
@@ -354,6 +387,7 @@
       <h2>区间总览</h2>
       <div class="summary-grid">
         {{SUMMARY_CARDS}}
+        {{TREND_CARD}}
       </div>
       {{SUMMARY_LINE}}
     </div>
@@ -375,17 +409,17 @@
     <div class="section">
       <h2>关键词云</h2>
       <div class="word-cloud-card">
-        <div class="word-cloud-title">AI 社群关键词云</div>
         <canvas id="cloud" class="word-cloud-canvas" width="860" height="560"></canvas>
       </div>
     </div>
 
     <div class="footer">
-      报告由 Codex 基于微信群聊记录生成
+      报告由小涛基于微信群聊生成
     </div>
   </div>
   <script>
     const words = {{WORD_CLOUD_DATA}};
+    const trendData = {{TREND_DATA}};
 
     WordCloud(document.getElementById('cloud'), {
       list: words,
@@ -410,6 +444,95 @@
         return colors[Math.floor(Math.random() * colors.length)];
       }
     });
+
+    (function renderTrend() {
+      const canvas = document.getElementById('trend');
+      if (!canvas || !trendData || !trendData.length) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      const width = rect.width || canvas.width;
+      const height = rect.height || canvas.height;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      const pad = 40;
+      const bottomPad = 34;
+      const topPad = 18;
+      const leftPad = 44;
+      const w = width;
+      const h = height;
+      const ys = trendData.map((p) => p[1]);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+      const rangeY = Math.max(maxY - minY, 1);
+      const plotW = w - leftPad - pad;
+      const plotH = h - topPad - bottomPad;
+      const stepX = trendData.length > 1 ? plotW / (trendData.length - 1) : 0;
+
+      ctx.clearRect(0, 0, w, h);
+
+      for (let i = 0; i < 5; i++) {
+        const y = topPad + (plotH / 4) * i;
+        ctx.strokeStyle = 'rgba(142, 164, 212, 0.14)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(leftPad, y);
+        ctx.lineTo(w - pad, y);
+        ctx.stroke();
+      }
+
+      for (let i = 0; i < trendData.length; i++) {
+        const x = leftPad + stepX * i;
+        ctx.strokeStyle = 'rgba(142, 164, 212, 0.12)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x, topPad);
+        ctx.lineTo(x, h - bottomPad);
+        ctx.stroke();
+      }
+
+      ctx.beginPath();
+      trendData.forEach((point, index) => {
+        const x = leftPad + stepX * index;
+        const y = h - bottomPad - ((point[1] - minY) / rangeY) * plotH;
+        if (index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.strokeStyle = '#4de2ff';
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = 'rgba(77, 226, 255, 0.35)';
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      trendData.forEach((point, index) => {
+        const x = leftPad + stepX * index;
+        const y = h - bottomPad - ((point[1] - minY) / rangeY) * plotH;
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#5b8cff';
+        ctx.fill();
+      });
+
+      ctx.fillStyle = '#8ea4d4';
+      ctx.font = '12px "Microsoft YaHei", "PingFang SC", sans-serif';
+      ctx.textAlign = 'center';
+      trendData.forEach((point, index) => {
+        const x = leftPad + stepX * index;
+        const label = point[0];
+        if (index === 0 || index === trendData.length - 1 || trendData.length <= 6 || index % 2 === 0) {
+          ctx.fillText(label, x, h - 12);
+        }
+      });
+
+      ctx.textAlign = 'right';
+      ctx.fillText(String(maxY), leftPad - 10, topPad + 4);
+      ctx.fillText(String(minY), leftPad - 10, h - bottomPad + 4);
+    })();
   </script>
 </body>
 </html>
