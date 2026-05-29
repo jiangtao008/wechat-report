@@ -472,6 +472,12 @@
       const plotW = w - leftPad - pad;
       const plotH = h - topPad - bottomPad;
       const stepX = trendData.length > 1 ? plotW / (trendData.length - 1) : 0;
+      const points = trendData.map((point, index) => ({
+        label: point[0],
+        value: point[1],
+        x: leftPad + stepX * index,
+        y: h - bottomPad - ((point[1] - minY) / rangeY) * plotH
+      }));
 
       ctx.clearRect(0, 0, w, h);
 
@@ -485,8 +491,8 @@
         ctx.stroke();
       }
 
-      for (let i = 0; i < trendData.length; i++) {
-        const x = leftPad + stepX * i;
+      for (let i = 0; i < points.length; i++) {
+        const x = points[i].x;
         ctx.strokeStyle = 'rgba(142, 164, 212, 0.12)';
         ctx.lineWidth = 1;
         ctx.beginPath();
@@ -496,12 +502,21 @@
       }
 
       ctx.beginPath();
-      trendData.forEach((point, index) => {
-        const x = leftPad + stepX * index;
-        const y = h - bottomPad - ((point[1] - minY) / rangeY) * plotH;
-        if (index === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
+      if (points.length === 1) {
+        ctx.moveTo(points[0].x, points[0].y);
+        ctx.lineTo(points[0].x, points[0].y);
+      } else {
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 0; i < points.length - 1; i++) {
+          const current = points[i];
+          const next = points[i + 1];
+          const cp1x = current.x + stepX * 0.35;
+          const cp1y = current.y;
+          const cp2x = next.x - stepX * 0.35;
+          const cp2y = next.y;
+          ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, next.x, next.y);
+        }
+      }
       ctx.strokeStyle = '#4de2ff';
       ctx.lineWidth = 2.5;
       ctx.shadowColor = 'rgba(77, 226, 255, 0.35)';
@@ -509,11 +524,9 @@
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      trendData.forEach((point, index) => {
-        const x = leftPad + stepX * index;
-        const y = h - bottomPad - ((point[1] - minY) / rangeY) * plotH;
+      points.forEach((point) => {
         ctx.beginPath();
-        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.arc(point.x, point.y, 4, 0, Math.PI * 2);
         ctx.fillStyle = '#5b8cff';
         ctx.fill();
       });
@@ -521,11 +534,10 @@
       ctx.fillStyle = '#8ea4d4';
       ctx.font = '12px "Microsoft YaHei", "PingFang SC", sans-serif';
       ctx.textAlign = 'center';
-      trendData.forEach((point, index) => {
-        const x = leftPad + stepX * index;
-        const label = point[0];
-        if (index === 0 || index === trendData.length - 1 || trendData.length <= 6 || index % 2 === 0) {
-          ctx.fillText(label, x, h - 12);
+      const labelStep = points.length <= 8 ? 1 : points.length <= 16 ? 2 : points.length <= 24 ? 3 : 4;
+      points.forEach((point, index) => {
+        if (index === 0 || index === points.length - 1 || index % labelStep === 0) {
+          ctx.fillText(point.label, point.x, h - 12);
         }
       });
 
