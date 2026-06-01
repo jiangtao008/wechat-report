@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tesla特特特能说 群聊周报</title>
+  <title>Tesla特特特能说 群聊动态报告</title>
   <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.3/src/wordcloud2.min.js"></script>
   <style>
     :root {
@@ -135,7 +135,6 @@
       margin-top: 8px;
       color: var(--green);
       font-size: 14px;
-      line-height: 1.75;
     }
 
     .topic-title {
@@ -213,7 +212,6 @@
       margin-top: 10px;
       color: #9db5e6;
       font-size: 13px;
-      line-height: 1.7;
     }
 
     .summary-grid {
@@ -250,7 +248,48 @@
       background: linear-gradient(180deg, rgba(12, 20, 42, 0.88), rgba(8, 14, 30, 0.94));
       border: 1px solid rgba(90, 150, 255, 0.16);
       color: #dbe7ff;
-      line-height: 1.8;
+    }
+
+    .trend-card {
+      grid-column: 1 / -1;
+      padding: 22px 22px 18px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, var(--panel), var(--panel-strong));
+      border: 1px solid rgba(90, 150, 255, 0.16);
+    }
+
+    .trend-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      color: #b9cbff;
+      font-size: 13px;
+    }
+
+    .trend-title {
+      font-weight: 700;
+      color: #ffffff;
+      font-size: 15px;
+    }
+
+    .trend-canvas {
+      display: block;
+      width: 100%;
+      height: 260px;
+      border-radius: 14px;
+      background:
+        linear-gradient(to bottom, rgba(77, 226, 255, 0.04), rgba(255, 255, 255, 0.01)),
+        rgba(255, 255, 255, 0.01);
+      border: 1px solid rgba(90, 150, 255, 0.12);
+    }
+
+    .trend-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
     }
 
     .summary-line-label {
@@ -302,15 +341,6 @@
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
 
-    .word-cloud-title {
-      text-align: center;
-      color: #b9cbff;
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 14px;
-      letter-spacing: 0.06em;
-    }
-
     .word-cloud-canvas {
       display: block;
       width: 100%;
@@ -349,306 +379,201 @@
   <div class="container">
     <div class="hero">
       <div class="eyebrow">群聊情报报告</div>
-      <h1>Tesla特特特能说 群聊周报（2026-05-20 至 2026-05-27）</h1>
-      <div class="subtitle">这一周的主旋律很明确：车主群表面聊特斯拉，实际同时经营贴膜福利、FSD 幻想、暴雨路况、酒局邀约和咖啡续命。专业信息和生活废话掺着飞，才是这群的真实稳定结构。</div>
+      <h1>Tesla特特特能说 群聊周报（2026-05-26 至 2026-06-01）</h1>
+      <div class="subtitle">7 天内共记录 13,211 条消息、86 位参与者。群聊的稳定主旋律是车主经验、线下组局与高频接梗：白天交换攻略，晚上研究去哪喝，任何一盘饺子都有机会被升级成公共事件。</div>
     </div>
 
     <div class="section">
       <h2>区间总览</h2>
       <div class="summary-grid">
-        <div class="summary-card">
-          <span class="summary-label">总发言数</span>
-          <span class="summary-value">12367</span>
-        </div>
-        <div class="summary-card">
-          <span class="summary-label">活跃参与人数</span>
-          <span class="summary-value">86</span>
-        </div>
-        <div class="summary-card">
-          <span class="summary-label">最热时段</span>
-          <span class="summary-value">11 点档 1395 条</span>
-        </div>
-        <div class="summary-card">
-          <span class="summary-label">统计跨度</span>
-          <span class="summary-value">8 天</span>
-        </div>
+        <div class="summary-card"><span class="summary-label">总发言条数</span><span class="summary-value">13,211</span></div>
+<div class="summary-card"><span class="summary-label">活跃参与人数</span><span class="summary-value">86</span></div>
+<div class="summary-card"><span class="summary-label">文本消息</span><span class="summary-value">11,470</span></div>
+<div class="summary-card"><span class="summary-label">媒体与占位消息</span><span class="summary-value">1,741</span></div>
+<div class="summary-card"><span class="summary-label">日均消息量</span><span class="summary-value">1,887</span></div>
+<div class="summary-card"><span class="summary-label">峰值小时</span><span class="summary-value">05-26 11:00 · 579 条</span></div>
+        <div class="trend-card"><div class="trend-head"><span class="trend-title">每日消息走势</span><span>峰值：05-27 · 3,010 条</span></div><canvas id="trend" class="trend-canvas" width="820" height="260"></canvas><div class="trend-note">前两天火力最密集，之后回落到稳定聊天水位；即便周末减速，群内仍保持每日千条级别的持续在线。</div></div>
       </div>
-      <div class="summary-line">
-        <span class="summary-line-label">高频情绪</span>
-        拱火、实用、嘴碎、热闹。高峰集中在 5 月 26 日和 5 月 27 日，单日都接近 3000 条；真正能稳住全周讨论的，不是宏大新闻，而是“免费贴膜到底值不值”“FSD 到底来没来”“长沙暴雨会不会淹车”“今晚谁喝酒”这几类长期有效的问题。
-      </div>
+      <div class="summary-line"><span class="summary-line-label">高频情绪</span>调侃、接梗、围观、组局。车主实用信息持续出现，但群友最擅长的仍是把普通日常迅速加工成连续剧。</div>
     </div>
 
     <div class="section">
       <h2>群聊热点话题</h2>
       <ul>
-        <li>
-          <span class="topic-title">免费贴膜福利是本周最强硬通货，群友反应比抢演唱会还快</span>
-          <span class="topic-act">第一幕：福利帖落地</span>
-          <span class="topic-step">5 月 20 日下午，老y免费贴膜抛出“还有 8 个名额”，随后补上完整活动转发：26 台老款 Model Y、长沙会展中心、价值 7000 元圣戈班量子膜、还附带部分车衣施工。</span>
-          <span class="topic-step">群里立刻进入资格审查模式，黑色和星空灰能不能上、贴过改色膜能不能撕了重来、车要放两天值不值，全都有人接着问。</span>
-          <span class="topic-act">第二幕：信息差变报名焦虑</span>
-          <span class="topic-step">“已经凑齐18台了”“还有8个名额家人们” 这种倒计时话术把群聊节奏拉得很满，原本只是贴膜信息，最后硬生生聊成了稀缺资源竞拍。</span>
-          <span class="topic-step">后续还不断外溢到玻璃水、车衣、洗车和车漆维护，说明这群对“白嫖型车务福利”的敏感度远高于抽象参数争论。</span>
-          <div class="highlight-quote">
-            <span class="highlight-text">点睛之笔：“老y有人想免费贴膜吗家人们 还有8个名额”</span>
-            <span class="highlight-author">老y免费贴膜</span>
-          </div>
-          <span class="ai-note">AI 锐评：本周最有号召力的不是品牌新闻，而是“0 元贴膜”。在车主群里，免费永远比先进更有传播力。</span>
-          <span class="topic-participants">主要参与者：老y免费贴膜、蜡笔老滔（加我天天涨停）488、天弟-在线3219铁牌技师（进阶中)、640、熙哥-191号退役金牌技师</span>
-        </li>
-
-        <li>
-          <span class="topic-title">FSD、焕新 Y 和特斯拉 AI 新闻，把群里拉回“车友群本职工作”</span>
-          <span class="topic-act">第一幕：链接密集轰炸</span>
-          <span class="topic-step">周中围绕“监督版 FSD 登陆中国”“车机 AI 大模型升级”“焕新 Y 到底值不值”接连出现多篇链接，群里进入半新闻联播、半情绪宣泄状态。</span>
-          <span class="topic-step">有人问“谁有 fsd 的，写个八百字使用感受”，有人直接吐槽“事实也确实是车都 4 万公里了 fsd 满血还没进来”，热情和幻灭感并存。</span>
-          <span class="topic-act">第二幕：价格和可用性互相打架</span>
-          <span class="topic-step">讨论很快从“官宣了没有”切到“到底能不能用”“秒开通是不是真的”“二手 FSD 划不划算”，典型群聊式技术讨论：先转消息，再拼渠道，最后回到价格。</span>
-          <span class="topic-step">“别被误导！官宣不等于可用” 这类发言就是本周智驾情绪的核心：大家都想要，但没人真敢先完全信。</span>
-          <div class="highlight-quote">
-            <span class="highlight-text">点睛之笔：“别被误导！官宣不等于可用”</span>
-            <span class="highlight-author">焕新Y韭菜园园长-9177</span>
-          </div>
-          <span class="ai-note">AI 锐评：这段最像真车友群日常，嘴上全是“垃圾特斯拉”，眼睛却一刻没离开 FSD 和焕新 Y 的任何新风声。</span>
-          <span class="topic-participants">主要参与者：Y-03530特烦恼、焕新Y韭菜园园长-9177、640、熙哥-191号退役金牌技师、老 3-BK4188</span>
-        </li>
-
-        <li>
-          <span class="topic-title">长沙暴雨把群聊临时改造成路况播报台和挪车指挥部</span>
-          <span class="topic-act">第一幕：预警先来，情绪后到</span>
-          <span class="topic-step">5 月 22 日下午到深夜，“马上要暴雨了”“大大大暴雨”“暴雨红色预警” 连续刷屏，讨论从天气吐槽迅速切换到“地下室会不会淹”“今晚还拼不拼电”的现实风险。</span>
-          <span class="topic-step">到了夜里和次日凌晨，群友开始汇报各区状态：“好多路被淹了”“长沙县淹得更快”“我已经看到有油车被淹了一半了”，本地实况比官方播报更细。</span>
-          <span class="topic-act">第二幕：车主群的典型应激反应</span>
-          <span class="topic-step">有人起床挪车，有人判断哪里能走，有人顺手嘲物业费白交了。天气在这里不是背景，而是直接影响车辆停放、充电和出门路径的硬条件。</span>
-          <span class="topic-step">这段还带出一个很车主化的细节：下雨天讨论永远会自动延展到玻璃水、油膜、车库和视野问题，暴雨就是整个用车生态的总开关。</span>
-          <div class="highlight-quote">
-            <span class="highlight-text">点睛之笔：“我已经看到有油车被淹了一半了”</span>
-            <span class="highlight-author">（聚会除了071所有人都去了）</span>
-          </div>
-          <span class="ai-note">AI 锐评：当暴雨真的砸下来，群里最可靠的信息源不是新闻账号，而是正在路上、正在看车库、正在决定要不要下楼的人。</span>
-          <span class="topic-participants">主要参与者：Y-03530特烦恼、（聚会除了071所有人都去了）、生铁棍、龚律师AA80727、73973、橘子 3-9309</span>
-        </li>
-
-        <li>
-          <span class="topic-title">喝酒、咖啡和 520 式社交，是这周最稳定的副主线</span>
-          <span class="topic-act">第一幕：520 开了个坏头</span>
-          <span class="topic-step">周报起点就很群味：工资短信被拿来“手滑”发群，紧跟着是“今天 520，谈得来”“52 个 0 元红包”，整套流程说明大家对仪式感的理解主打一个能玩梗就算过节。</span>
-          <span class="topic-step">随后几天，“今晚喝不喝”“来万家丽喝酒么”“洗个头发，来找你喝咖啡”“你也喝酒？” 轮流出现，酒局和咖啡局几乎成了每天都会刷新的一条日常线程。</span>
-          <span class="topic-act">第二幕：邀约比成行更重要</span>
-          <span class="topic-step">真正成没成局其实没那么关键，关键是群里永远有人在邀、有人在装不喝、有人在顺手拱火，再配上“带妹妹吗”“不白走”“我平常在家里自己喝要喝半斤”这类夸张话术，局的气味已经够了。</span>
-          <span class="topic-step">这也解释了为什么群内高频人物能长期霸榜：他们未必都在输出专业信息，但都在稳定制造可接话的社交接口。</span>
-          <div class="highlight-quote">
-            <span class="highlight-text">点睛之笔：“喝酒没有固定的格式”</span>
-            <span class="highlight-author">Y-03530特烦恼</span>
-          </div>
-          <span class="ai-note">AI 锐评：这群最厉害的地方不是总能把酒喝起来，而是总能把“喝不喝”聊得像一场大型连续剧预告片。</span>
-          <span class="topic-participants">主要参与者：蜡笔老滔（加我天天涨停）488、Y-03530特烦恼、龚律师AA80727、好来-0593、姨姨-湘AD50250、凯311</span>
-        </li>
-
-        <li>
-          <span class="topic-title">保险、玻璃水、充电和睡车里，把车主生活细节聊成了民间知识库</span>
-          <span class="topic-act">第一幕：谁都能临时当顾问</span>
-          <span class="topic-step">群里这一周没少出现“保险王是谁”“选保险先看公司和车损保额”“平安最好沟通”这种问答，说明大家把群当成了低门槛咨询台。</span>
-          <span class="topic-step">玻璃水和油膜那一段也很典型，从“特斯拉原厂玻璃水”到“我可以不洗车，但一定要刮玻璃”，看似琐碎，但互动量很高，因为实用。</span>
-          <span class="topic-act">第二幕：车当生活场景，不只是交通工具</span>
-          <span class="topic-step">“前天在酒店充电，直接地下车库睡车里”“睡车里不冷，就是缺氧”这类发言，把特斯拉使用场景延展到了住宿、充电、休息和应急环境。</span>
-          <span class="topic-step">真正让群活下来的往往不是大新闻，而是这种细枝末节的经验交换，密度不高，但复用率极高。</span>
-          <div class="highlight-quote">
-            <span class="highlight-text">点睛之笔：“我可以不洗车，但我一定要刮玻璃”</span>
-            <span class="highlight-author">哈哈</span>
-          </div>
-          <span class="ai-note">AI 锐评：真正耐聊的话题从来不宏大，最好是“今天就可能用上”，而玻璃水、保险和充电正好都属于这种车主民生。</span>
-          <span class="topic-participants">主要参与者：特斯拉宇哥A Az8999、哈哈、天弟-在线3219铁牌技师（进阶中)、生铁棍、老y免费贴膜、01</span>
-        </li>
+        <li><span class="topic-title">早高峰路怒：一句“搞他”把群聊瞬间点着</span><span class="topic-act">第一幕：险情开场</span><span class="topic-step">3-湘AAB 6920🎈🎈 发视频后说明，早高峰被对方车辆逼近护栏，随后在红灯处下车敲窗理论。</span><span class="topic-step">好人卡、Y-03530特烦恼、蜡笔老滔连续接上“搞他”，短句像接力棒一样把情绪推高。</span><span class="topic-act">第二幕：故事升级</span><span class="topic-step">陈摄补上一位更猛的哥们：处理别车的逻辑极其简单，敢别就敢撞。</span><span class="topic-step">讨论很快从一次路怒扩展为“舍不得车，但可以追着骂”的驾驶风格自述，群内气氛从紧张转为集体围观。</span><div class="highlight-quote"><span class="highlight-text">“你只要敢别我就撞你”</span><span class="highlight-author">— 陈摄</span></div><span class="ai-note"><strong>AI 锐评：</strong>这段聊天把早高峰险情加工成了一场十分钟群体脱口秀。情绪输出很猛，但现实路上还是建议把“搞他”留在聊天框里。</span><span class="topic-participants"><strong>主要参与者：</strong>3-湘AAB 6920🎈🎈、陈摄、好人卡-Y 湘 ADQ8804、Y-03530特烦恼、蜡笔老滔488</span></li>
+<li><span class="topic-title">车主群的操作台：保险、喷漆、睡车与免费贴膜</span><span class="topic-act">第一幕：用车经验快速答疑</span><span class="topic-step">Y-03530特烦恼询问保险送喷漆是否值得做，生铁棍直接提醒能不喷尽量不喷，原版原漆没了就是没了。</span><span class="topic-step">话题随后滑向自驾住宿：01 问特斯拉能不能睡车上，熙哥给出“都开特斯拉了，车上睡呀”的务实答案。</span><span class="topic-act">第二幕：福利转发继续接管群聊</span><span class="topic-step">老y免费贴膜多次转发 Model Y 免费贴膜招募，核心是免费送膜与免费施工。</span><span class="topic-step">百事可乐-毛豆3-5777 又补充 Model 3 / Model Y 到场领礼金活动，车主群的资源交换属性被拉满。</span><div class="highlight-quote"><span class="highlight-text">“能不喷尽量不要喷，原版原漆没了。”</span><span class="highlight-author">— 生铁棍</span></div><span class="ai-note"><strong>AI 锐评：</strong>有人负责提问，有人负责避坑，有人专门把免费福利搬进群。群名里有 Tesla，群聊里也确实没有浪费这个招牌。</span><span class="topic-participants"><strong>主要参与者：</strong>Y-03530特烦恼、生铁棍、老y免费贴膜、01、熙哥-191号退役金牌技师、百事可乐-毛豆3-5777</span></li>
+<li><span class="topic-title">25 个饺子：一顿饭如何变成群聚预备席</span><span class="topic-act">第一幕：照片触发清点</span><span class="topic-step">舒服哥晒出饺子后，群友立刻进入审计模式：有人劝少吃，有人建议打包，有人开始为晚上的聚会保留库存。</span><span class="topic-step">蜡笔老滔提出转 20 元让棍博士把饺子倒掉，640 真把 20 元转了过去。</span><span class="topic-act">第二幕：数量成为公共财产</span><span class="topic-step">（聚会除了071所有人都去了）明确宣布“25个饺子，数好了”，640 也确认自己数过。</span><span class="topic-step">话题最后从饺子数量转向晚间组局，孔巍71728 总结成“群聚会还有预备餐”，精准命名这场闹剧。</span><div class="highlight-quote"><span class="highlight-text">“25个饺子 数好了 今晚打包盒里少一个都是你的问题”</span><span class="highlight-author">— （聚会除了071所有人都去了）</span></div><span class="ai-note"><strong>AI 锐评：</strong>本周最成功的群聊道具不是车，也不是酒，是一盘被多人远程盘点的饺子。它用 20 元转账完成了从午餐到群体记忆的升级。</span><span class="topic-participants"><strong>主要参与者：</strong>生铁棍、（聚会除了071所有人都去了）、640、蜡笔老滔488、哈哈、孔巍71728</span></li>
+<li><span class="topic-title">“巡游”不是地点，是周末召集令</span><span class="topic-act">第一幕：线下计划反复升温</span><span class="topic-step">杨慧慧提出约凯凯去巡游，蜡笔老滔先定下原则：巡游必须周末。</span><span class="topic-step">第二天好来-0593 再次喊人喝酒，（聚会除了071所有人都去了）一边嫌距离远，一边继续围绕巡游和梅溪湖讨价还价。</span><span class="topic-act">第二幕：群里永远差一个出门的人</span><span class="topic-step">有人发定位，有人问“去哪去哪”，有人已经在串小白，也有人坚持先完成吃饭流程。</span><span class="topic-step">最终形成了这个群稳定的线下节奏：先在群里把气氛拉满，再看谁真的下楼。</span><div class="highlight-quote"><span class="highlight-text">“今天不行，去巡游必须周末”</span><span class="highlight-author">— 蜡笔老滔488</span></div><span class="ai-note"><strong>AI 锐评：</strong>这个群的组局不是通知，是连续剧。地点会变，借口会变，唯一不变的是每次都要先在群里跑完一轮嘴上热身。</span><span class="topic-participants"><strong>主要参与者：</strong>蜡笔老滔488、（聚会除了071所有人都去了）、好来-0593、凯311、杨慧慧☀湘AAE6235、孔巍71728</span></li>
+<li><span class="topic-title">长沙吃喝雷达：咖啡、麻辣小吃与新疆烤串</span><span class="topic-act">第一幕：咖啡馆成为固定坐标</span><span class="topic-step">曾88826 发出观山咖啡定位，解释自己和刘哥天天在那里见面喝咖啡。</span><span class="topic-step">群友立刻追问收费问题，打工人免费、顾客付费的反差被现场抓住。</span><span class="topic-act">第二幕：城市菜单持续扩容</span><span class="topic-step">孔巍71728 给出粉面、馄饨、卤味和麻辣小吃清单，信息密度直接拉到可收藏级别。</span><span class="topic-step">到了 06-01 晚间，陈摄又把新疆烤羊肉串带进群，Y-03530特烦恼顺手补上麦德龙口粮酒。</span><div class="highlight-quote"><span class="highlight-text">“我和刘哥，天天在这里见面喝咖啡”</span><span class="highlight-author">— 曾88826</span></div><span class="ai-note"><strong>AI 锐评：</strong>吃喝话题是这群最稳定的低门槛共识：有人发位置，有人给路线，有人补酒。群聊不一定马上成团，但收藏夹已经先吃饱了。</span><span class="topic-participants"><strong>主要参与者：</strong>曾88826、孔巍71728、Y-03530特烦恼、陈摄、焕新3 9794、杨慧慧☀湘AAE6235</span></li>
+<li><span class="topic-title">恐怖故事转场密室逃脱：怕，但一定要继续聊</span><span class="topic-act">第一幕：恐怖故事先上桌</span><span class="topic-step">01 表示自己正在听恐怖故事，还认真总结要学习恐怖逻辑、举一反三、触类旁通。</span><span class="topic-step">熙哥一句“看看自己的钱包”迅速把惊悚片拉回现实主义。</span><span class="topic-act">第二幕：从看片推进到线下体验</span><span class="topic-step">01 坦白自己又怕又想看，还提议下次约恐怖电影。</span><span class="topic-step">孔巍71728 顺势问要不要玩密室逃脱，01 立刻回忆自己在密室里摔倒、被人架起来的经历。</span><div class="highlight-quote"><span class="highlight-text">“看看自己的钱包，比什么恐怖故事都强”</span><span class="highlight-author">— 熙哥-191号退役金牌技师</span></div><span class="ai-note"><strong>AI 锐评：</strong>这段话题的推进非常标准：先聊恐怖故事，再约密室，最后被现实钱包补刀。恐怖元素负责开场，群友负责把它变成喜剧。</span><span class="topic-participants"><strong>主要参与者：</strong>01、熙哥-191号退役金牌技师、孔巍71728、蜡笔老滔488</span></li>
       </ul>
     </div>
 
     <div class="section">
       <h2>区间活跃之星</h2>
       <ol>
-        <li>
-          <div class="rank-item">
-            <span class="rank-main">蜡笔老滔（加我天天涨停）488</span>
-            <strong>1844 条发言</strong>
-          </div>
-          <span class="star-note">AI 锐评：本周绝对核心发射器，几乎每个主题都有他在接、在拱、在扯，群聊节奏感很大一部分是他硬推出来的。</span>
-          <div class="tag-row">
-            <span class="tag">节奏轴心</span>
-            <span class="tag">梗王</span>
-            <span class="tag">全天在线</span>
-          </div>
-        </li>
-        <li>
-          <div class="rank-item">
-            <span class="rank-main">生铁棍</span>
-            <strong>1131 条发言</strong>
-          </div>
-          <span class="star-note">AI 锐评：常年承担“补一句更狠的”职责，车务、天气、酒局都能插嘴，而且很少废话，命中率高。</span>
-          <div class="tag-row">
-            <span class="tag">补刀位</span>
-            <span class="tag">持续输出</span>
-            <span class="tag">高存在感</span>
-          </div>
-        </li>
-        <li>
-          <div class="rank-item">
-            <span class="rank-main">Y-03530特烦恼</span>
-            <strong>1070 条发言</strong>
-          </div>
-          <span class="star-note">AI 锐评：FSD、暴雨、喝酒、长沙气温，他总能把一个普通问题提成全群都能接的公共话题。</span>
-          <div class="tag-row">
-            <span class="tag">提问发动机</span>
-            <span class="tag">氛围组</span>
-            <span class="tag">多线并发</span>
-          </div>
-        </li>
-        <li>
-          <div class="rank-item">
-            <span class="rank-main">（聚会除了071所有人都去了）</span>
-            <strong>1061 条发言</strong>
-          </div>
-          <span class="star-note">AI 锐评：群内老梗本人化，一旦出现就自带剧情推进能力，尤其擅长把线下局、路况和临场信息拉进讨论。</span>
-          <div class="tag-row">
-            <span class="tag">线下情报</span>
-            <span class="tag">剧情角色</span>
-            <span class="tag">高频接梗</span>
-          </div>
-        </li>
-        <li>
-          <div class="rank-item">
-            <span class="rank-main">01</span>
-            <strong>926 条发言</strong>
-          </div>
-          <span class="star-note">AI 锐评：像群里的静态底噪来源，出现频率高，内容分布广，常在各种实用小问题里补上关键一脚。</span>
-          <div class="tag-row">
-            <span class="tag">稳定在线</span>
-            <span class="tag">民生向</span>
-            <span class="tag">补位型</span>
-          </div>
-        </li>
-        <li>
-          <div class="rank-item">
-            <span class="rank-main">640</span>
-            <strong>601 条发言</strong>
-          </div>
-          <span class="star-note">AI 锐评：数码、FSD、玻璃水、身边人八卦都能接，属于能把任何题目聊到更具体的人。</span>
-          <div class="tag-row">
-            <span class="tag">杂食型输出</span>
-            <span class="tag">细节补充</span>
-            <span class="tag">高覆盖率</span>
-          </div>
-        </li>
-        <li>
-          <div class="rank-item">
-            <span class="rank-main">老y免费贴膜</span>
-            <strong>589 条发言</strong>
-          </div>
-          <span class="star-note">AI 锐评：这周的最大信息源之一，靠一条免费贴膜消息把自己从普通成员抬成了全群围观中心。</span>
-          <div class="tag-row">
-            <span class="tag">福利中介</span>
-            <span class="tag">车务情报</span>
-            <span class="tag">高转发值</span>
-          </div>
-        </li>
-        <li>
-          <div class="rank-item">
-            <span class="rank-main">天弟-在线3219铁牌技师（进阶中)</span>
-            <strong>559 条发言</strong>
-          </div>
-          <span class="star-note">AI 锐评：典型的车友群机动位，早上能聊睡车里缺氧，中午能聊保险，晚上还能去接酒局话题。</span>
-          <div class="tag-row">
-            <span class="tag">机动补位</span>
-            <span class="tag">生活流</span>
-            <span class="tag">全天候</span>
-          </div>
-        </li>
-        <li>
-          <div class="rank-item">
-            <span class="rank-main">熙哥-191号退役金牌技师</span>
-            <strong>508 条发言</strong>
-          </div>
-          <span class="star-note">AI 锐评：擅长把零散话题往“算账”“估值”“划不划算”上落，属于群里的成本收益分析师。</span>
-          <div class="tag-row">
-            <span class="tag">算账派</span>
-            <span class="tag">理性嘴碎</span>
-            <span class="tag">价格敏感</span>
-          </div>
-        </li>
-        <li>
-          <div class="rank-item">
-            <span class="rank-main">哈哈</span>
-            <strong>387 条发言</strong>
-          </div>
-          <span class="star-note">AI 锐评：虽然名字像反应词，但输出并不水，尤其在玻璃水、清洁和日常吐槽里辨识度很高。</span>
-          <div class="tag-row">
-            <span class="tag">清洁派</span>
-            <span class="tag">实用型</span>
-            <span class="tag">日常吐槽</span>
-          </div>
-        </li>
+        <li><div class="rank-item"><span class="rank-main">TOP 1 · 蜡笔老滔488</span><strong>2073 条</strong></div><span class="star-note">从路怒到饺子、从巡游到投资截图，几乎每条主线都能看到他续火。发言密度极高，但并非只刷屏：他擅长把普通信息改造成一句能被继续接下去的梗，是本周最稳定的节奏发动机。</span><div class="tag-row"><span class="tag">群聊主引擎</span><span class="tag">接梗王</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 2 · Y-03530特烦恼</span><strong>1218 条</strong></div><span class="star-note">常用短问句把话题重新发球，也会把用车问题、餐厅线索和链接搬进群里。存在感不是靠长篇，而是靠精准出现在每个可以继续聊两句的位置。</span><div class="tag-row"><span class="tag">问题投手</span><span class="tag">车主雷达</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 3 · （聚会除了071所有人都去了）</span><strong>1129 条</strong></div><span class="star-note">既能发招聘信息，也能把 25 个饺子审成公共资产。最擅长在“太远了”和“我立马下楼”之间反复横跳，嘴上嫌麻烦，实际上永远在组局剧情中央。</span><div class="tag-row"><span class="tag">组局调度</span><span class="tag">饺子审计</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 4 · 生铁棍</span><strong>1077 条</strong></div><span class="star-note">车漆、充电、群数据、生活经验都能接，答问题时经常先给结论。偏偏又是饺子事件的主角之一，说明知识库也躲不过群友的定点调侃。</span><div class="tag-row"><span class="tag">经验库</span><span class="tag">冷面补刀</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 5 · 老y免费贴膜</span><strong>963 条</strong></div><span class="star-note">名字和本周表现高度一致：停车、探店、旅行变现、Model Y 免费贴膜招募都能持续输出。实用信息很多，末尾再补一句“老天奶”，让工具人气质不会太干。</span><div class="tag-row"><span class="tag">福利搬运</span><span class="tag">实用派</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 6 · 01</span><strong>872 条</strong></div><span class="star-note">能从工作、股票聊到恐怖故事，再把密室逃脱说成实战复盘。发言常带快速转场感，别人还在铺垫，她已经把下一幕的道具搬上来了。</span><div class="tag-row"><span class="tag">剧情制造</span><span class="tag">恐怖片组</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 7 · 熙哥-191号退役金牌技师</span><strong>605 条</strong></div><span class="star-note">讨论投资时能写出完整逻辑，讨论恐怖故事时又能用钱包一句收尾。属于平时可以认真给餐厅建议，关键时刻也绝不会放过补刀机会的人。</span><div class="tag-row"><span class="tag">长文定盘</span><span class="tag">现实补刀</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 8 · 640</span><strong>593 条</strong></div><span class="star-note">不少时候负责笑、追问和加码，但饺子事件里直接转出 20 元，把玩笑推进成了可核验的群聊事实。偶尔分享消费品线索，整体风格是看似围观，实则随时准备添一把火。</span><div class="tag-row"><span class="tag">梗上加码</span><span class="tag">转账执行</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 9 · 孔巍71728</span><strong>501 条</strong></div><span class="star-note">本周最像本地生活数据库的人：粉面、馄饨、卤味、麻辣小吃可以一口气列出完整路线。旅行见闻和位置推荐也很多，群聊一旦进入“去哪吃”，他就自动切到导航模式。</span><div class="tag-row"><span class="tag">长沙地图</span><span class="tag">信息密集</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 10 · 陈摄</span><strong>486 条</strong></div><span class="star-note">路怒话题里补出的“敢别我就撞你”成为本周金句之一。平时也会聊旅行、新疆与用车，叙事风格直接，不绕弯，群里需要故事时很容易点到他。</span><div class="tag-row"><span class="tag">故事派</span><span class="tag">路况主播</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 11 · 哈哈</span><strong>486 条</strong></div><span class="star-note">大部分时间顺着群聊气氛接球，偶尔突然扔出一套长沙网约车非法营运举报清单，信息量瞬间从闲聊切到办事指南。属于平时低调跟拍，关键时刻能上附件的人。</span><div class="tag-row"><span class="tag">资料投手</span><span class="tag">接话快反</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 12 · 天弟-在线3219铁牌技师（进阶中)</span><strong>374 条</strong></div><span class="star-note">擅长快速引用和顺势追问，常把群友抛出的半句话继续推远一点。聊天语气松，接梗速度快，是一看就没打算安静潜水的那种在线席位。</span><div class="tag-row"><span class="tag">气氛泵</span><span class="tag">追问位</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 13 · 凯311</span><strong>309 条</strong></div><span class="star-note">喝酒、巡游和线下见面经常能看到他被点名或接话。大量笑声并不复杂，但非常有效：别人负责把剧情推歪，他负责让现场明确知道这一段成立了。</span><div class="tag-row"><span class="tag">巡游候场</span><span class="tag">笑声伴奏</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 14 · 杨慧慧☀湘AAE6235</span><strong>265 条</strong></div><span class="star-note">咖啡、吃饭、山姆和线下气氛都能自然接入。发言不靠抢麦，更多像稳定的现场校准器：该接话时接话，该吐槽时也不会手软。</span><div class="tag-row"><span class="tag">社交快反</span><span class="tag">咖啡线</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 15 · 曾88826</span><strong>260 条</strong></div><span class="star-note">发出咖啡馆定位后，顺手揭晓自己天天在那里见面喝咖啡。也会聊摩托、音响和激进驾驶，话题跨度看似随意，但始终带着线下生活的实感。</span><div class="tag-row"><span class="tag">咖啡坐标</span><span class="tag">驾驶派</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 16 · Tesla特特特能说</span><strong>197 条</strong></div><span class="star-note">这一位更像群聊自动记录员：撤回消息、拍一拍和系统事件持续被它收进时间线。发言数量不低，但角色很明确，负责给所有人的临场发挥留下背景音。</span><div class="tag-row"><span class="tag">系统播报</span><span class="tag">撤回雷达</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 17 · 周      B66669</span><strong>146 条</strong></div><span class="star-note">能转发故事，也能聊房子、黄金和现实风险。最准确的一句观察是刚进群以为进了别的群，过几天才发现其实是“嘴炮群”，一句话把本周气质定了型。</span><div class="tag-row"><span class="tag">长文转发</span><span class="tag">观察位</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 18 · 好来-0593</span><strong>144 条</strong></div><span class="star-note">主要任务非常清楚：喊人喝酒、追问地点、逼对方别拿距离当借口。组局里总要有人把“改天”翻译成“现在”，他就是那个负责翻译的人。</span><div class="tag-row"><span class="tag">酒局催化</span><span class="tag">下楼派</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 19 · 焕新3 9794</span><strong>138 条</strong></div><span class="star-note">吃喝话题出现时反应很快，也会补充商品链接和个人使用经历。不是连续刷屏型，但每次出现都更接近生活现场，像群里的随手测评窗口。</span><div class="tag-row"><span class="tag">吃喝跟进</span><span class="tag">链接投手</span></div></li>
+<li><div class="rank-item"><span class="rank-main">TOP 20 · Y-湘A 066</span><strong>121 条</strong></div><span class="star-note">会补充松雅湖骑行、串小白撸串和象鼻窝爬山路线，也会诚实交代带崽与回家的时间约束。比起空喊组局，更像负责提供可落地周末方案的人。</span><div class="tag-row"><span class="tag">生活路线</span><span class="tag">户外支线</span></div></li>
       </ol>
     </div>
 
     <div class="section">
       <h2>关键词云</h2>
       <div class="word-cloud-card">
-        <div class="word-cloud-title">AI 社群关键词云</div>
         <canvas id="cloud" class="word-cloud-canvas" width="860" height="560"></canvas>
       </div>
     </div>
 
     <div class="footer">
-      报告由 Codex 基于微信群聊记录生成
+      报告由小涛基于微信群聊生成
     </div>
   </div>
   <script>
-    const words = [
-      ["贴膜", 190],
-      ["特斯拉", 160],
-      ["焕新Y", 132],
-      ["FSD", 128],
-      ["喝酒", 116],
-      ["暴雨", 102],
-      ["长沙", 96],
-      ["玻璃水", 88],
-      ["保险", 80],
-      ["充电", 76],
-      ["车衣", 72],
-      ["咖啡", 68],
-      ["Model Y", 64],
-      ["路况", 60],
-      ["工资", 56],
-      ["酒店", 50],
-      ["车库", 46],
-      ["空调", 42],
-      ["挪车", 40],
-      ["会展中心", 36]
-    ];
+    const words = [["巡游",120],["特斯拉",116],["长沙",112],["喝酒",108],["饺子",104],["咖啡",100],["贴膜",96],["保险",90],["聚会",88],["免费福利",86],["梅溪湖",82],["密室逃脱",78],["新疆烤串",74],["原版原漆",72],["充电",68],["恐怖故事",66],["版本升级",62],["山姆",60],["组局",58],["定位",56],["打工",54],["麻辣小吃",52],["Model Y",50],["睡车",48],["周末",46]];
+    const trendData = [["05-26",2962],["05-27",3010],["05-28",2016],["05-29",1948],["05-30",1139],["05-31",1052],["06-01",1084]];
 
-    WordCloud(document.getElementById("cloud"), {
+    WordCloud(document.getElementById('cloud'), {
       list: words,
       gridSize: 10,
-      weightFactor: 0.55,
-      fontFamily: "\"Microsoft YaHei\", \"PingFang SC\", sans-serif",
-      backgroundColor: "rgba(0,0,0,0)",
+      weightFactor: 3,
+      fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
+      backgroundColor: 'rgba(0,0,0,0)',
       rotateRatio: 0.35,
       minSize: 16,
       shrinkToFit: true,
       drawOutOfBound: false,
       color: function () {
         const colors = [
-          "#4de2ff",
-          "#7b61ff",
-          "#5b8cff",
-          "#9c7dff",
-          "#6a5acd",
-          "#b39ddb"
+          '#4de2ff',
+          '#7b61ff',
+          '#5b8cff',
+          '#9c7dff',
+          '#6a5acd',
+          '#b39ddb'
         ];
 
         return colors[Math.floor(Math.random() * colors.length)];
       }
     });
+
+    (function renderTrend() {
+      const canvas = document.getElementById('trend');
+      if (!canvas || !trendData || !trendData.length) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      const width = rect.width || canvas.width;
+      const height = rect.height || canvas.height;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      const pad = 40;
+      const bottomPad = 34;
+      const topPad = 18;
+      const leftPad = 44;
+      const w = width;
+      const h = height;
+      const ys = trendData.map((p) => p[1]);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+      const rangeY = Math.max(maxY - minY, 1);
+      const plotW = w - leftPad - pad;
+      const plotH = h - topPad - bottomPad;
+      const stepX = trendData.length > 1 ? plotW / (trendData.length - 1) : 0;
+      const points = trendData.map((point, index) => ({
+        label: point[0],
+        value: point[1],
+        x: leftPad + stepX * index,
+        y: h - bottomPad - ((point[1] - minY) / rangeY) * plotH
+      }));
+
+      ctx.clearRect(0, 0, w, h);
+
+      for (let i = 0; i < 5; i++) {
+        const y = topPad + (plotH / 4) * i;
+        ctx.strokeStyle = 'rgba(142, 164, 212, 0.14)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(leftPad, y);
+        ctx.lineTo(w - pad, y);
+        ctx.stroke();
+      }
+
+      for (let i = 0; i < points.length; i++) {
+        const x = points[i].x;
+        ctx.strokeStyle = 'rgba(142, 164, 212, 0.12)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x, topPad);
+        ctx.lineTo(x, h - bottomPad);
+        ctx.stroke();
+      }
+
+      ctx.beginPath();
+      if (points.length === 1) {
+        ctx.moveTo(points[0].x, points[0].y);
+        ctx.lineTo(points[0].x, points[0].y);
+      } else {
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 0; i < points.length - 1; i++) {
+          const current = points[i];
+          const next = points[i + 1];
+          const cp1x = current.x + stepX * 0.35;
+          const cp1y = current.y;
+          const cp2x = next.x - stepX * 0.35;
+          const cp2y = next.y;
+          ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, next.x, next.y);
+        }
+      }
+      ctx.strokeStyle = '#4de2ff';
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = 'rgba(77, 226, 255, 0.35)';
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      points.forEach((point) => {
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#5b8cff';
+        ctx.fill();
+      });
+
+      ctx.fillStyle = '#8ea4d4';
+      ctx.font = '12px "Microsoft YaHei", "PingFang SC", sans-serif';
+      ctx.textAlign = 'center';
+      const labelStep = points.length <= 8 ? 1 : points.length <= 16 ? 2 : points.length <= 24 ? 3 : 4;
+      points.forEach((point, index) => {
+        if (index === 0 || index === points.length - 1 || index % labelStep === 0) {
+          ctx.fillText(point.label, point.x, h - 12);
+        }
+      });
+
+      ctx.textAlign = 'right';
+      ctx.fillText(String(maxY), leftPad - 10, topPad + 4);
+      ctx.fillText(String(minY), leftPad - 10, h - bottomPad + 4);
+    })();
   </script>
 </body>
 </html>
