@@ -333,69 +333,6 @@
       font-size: 12px;
     }
 
-    .forest-section h2::before {
-      display: none;
-    }
-
-    .forest-section h2 {
-      gap: 12px;
-      font-size: 25px;
-    }
-
-    .forest-title-icon {
-      display: inline-grid;
-      width: 38px;
-      height: 38px;
-      place-items: center;
-      border-radius: 12px;
-      background: rgba(77, 226, 255, 0.12);
-      border: 1px solid rgba(77, 226, 255, 0.25);
-      font-size: 22px;
-    }
-
-    .topic-forest-card {
-      padding: 18px;
-      border-radius: 20px;
-      background:
-        radial-gradient(circle at 50% 50%, rgba(77, 226, 255, 0.08), transparent 44%),
-        linear-gradient(180deg, rgba(13, 22, 46, 0.92), rgba(8, 14, 30, 0.96));
-      border: 1px solid rgba(157, 181, 230, 0.22);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-      overflow: hidden;
-    }
-
-    .forest-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 12px;
-      margin: 2px 4px 12px;
-      flex-wrap: wrap;
-    }
-
-    .forest-kicker {
-      color: var(--cyan);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-    }
-
-    .forest-note {
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .topic-forest {
-      display: block;
-      width: 100%;
-      min-height: 510px;
-      border-radius: 16px;
-      background:
-        radial-gradient(circle at center, rgba(77, 226, 255, 0.08), transparent 36%),
-        rgba(255, 255, 255, 0.012);
-      border: 1px solid rgba(157, 181, 230, 0.16);
-    }
-
     .word-cloud-card {
       padding: 18px;
       border-radius: 20px;
@@ -413,43 +350,8 @@
       background: rgba(255, 255, 255, 0.02);
     }
 
-    .support-section {
-      padding: 36px 40px 38px;
-      text-align: center;
-      border-top: 1px solid rgba(90, 150, 255, 0.16);
-      background:
-        radial-gradient(circle at 50% 20%, rgba(59, 240, 195, 0.10), transparent 40%),
-        linear-gradient(180deg, rgba(10, 18, 38, 0.88), rgba(6, 11, 24, 0.94));
-    }
-
-    .support-title {
-      margin: 0;
-      color: #ffffff;
-      font-size: 25px;
-      line-height: 1.35;
-    }
-
-    .support-copy {
-      max-width: 520px;
-      margin: 12px auto 0;
-      color: var(--muted);
-      line-height: 1.8;
-      font-size: 15px;
-    }
-
-    .support-image {
-      display: block;
-      width: min(320px, 100%);
-      height: auto;
-      margin: 22px auto 0;
-      border-radius: 18px;
-      border: 1px solid rgba(59, 240, 195, 0.34);
-      box-shadow: 0 0 30px rgba(59, 240, 195, 0.18);
-      background: #ffffff;
-    }
-
     .footer {
-      padding: 20px 0 0;
+      padding: 22px 40px 34px;
       color: #6f86b7;
       font-size: 13px;
       text-align: center;
@@ -469,11 +371,6 @@
 
       h1 {
         font-size: 28px;
-      }
-
-      .support-section {
-        padding-left: 20px;
-        padding-right: 20px;
       }
     }
   </style>
@@ -509,17 +406,6 @@
       </ol>
     </div>
 
-    <div class="section forest-section">
-      <h2><span class="forest-title-icon">🌳</span>本期话题小森林</h2>
-      <div class="topic-forest-card">
-        <div class="forest-head">
-          <span class="forest-kicker">从核心关注向群聊话题生长</span>
-          <span id="forest-note" class="forest-note"></span>
-        </div>
-        <svg id="topic-forest" class="topic-forest" viewBox="0 0 1280 760" role="img" aria-label="本期话题小森林"></svg>
-      </div>
-    </div>
-
     <div class="section">
       <h2>关键词云</h2>
       <div class="word-cloud-card">
@@ -527,238 +413,37 @@
       </div>
     </div>
 
-    <div class="support-section">
-      <h2 class="support-title">这个报告有点意思?</h2>
-      <p class="support-copy">如果这份报告给你带来了片刻欢乐，不妨请幕后开发者喝杯咖啡，激励我创造更多有趣的瞬间!</p>
-      <img class="support-image" src="{{SUPPORT_QR_IMAGE}}" alt="请开发者喝杯咖啡二维码">
-      <div class="footer">报告由小涛基于微信群聊生成</div>
+    <div class="footer">
+      报告由小涛基于微信群聊生成
     </div>
   </div>
   <script>
     const words = {{WORD_CLOUD_DATA}};
     const trendData = {{TREND_DATA}};
-    const forestData = {{TOPIC_FOREST_DATA}};
 
-    (function renderTopicForest() {
-      const forest = document.getElementById('topic-forest');
-      const note = document.getElementById('forest-note');
-      const svgNs = 'http://www.w3.org/2000/svg';
-      const palette = ['#f27bbc', '#ffdf61', '#c8ef70', '#af7ce8', '#e97bde', '#6edfcf'];
-      const label = (value) => Array.from(String(value || '')).slice(0, 12).join('');
-      const element = (tag, attributes = {}) => {
-        const node = document.createElementNS(svgNs, tag);
-        Object.entries(attributes).forEach(([key, value]) => node.setAttribute(key, value));
-        return node;
-      };
-      const wrap = (value, width) => {
-        const characters = Array.from(label(value));
-        const lines = [];
-        for (let index = 0; index < characters.length; index += width) {
-          lines.push(characters.slice(index, index + width).join(''));
-        }
-        return lines.length ? lines : [''];
-      };
-      const addLines = (group, lines, x, y, options = {}) => {
-        const lineHeight = options.lineHeight || 20;
-        const startY = y - ((lines.length - 1) * lineHeight) / 2;
-        lines.forEach((line, index) => {
-          const text = element('text', {
-            x,
-            y: startY + index * lineHeight,
-            fill: options.fill || '#101623',
-            'font-size': options.size || 16,
-            'font-weight': options.weight || '700',
-            'text-anchor': 'middle',
-            'dominant-baseline': 'middle',
-            'font-family': '"Microsoft YaHei", "PingFang SC", sans-serif'
-          });
-          text.textContent = line;
-          group.appendChild(text);
-        });
-      };
-      const contrast = (color) => {
-        const match = /^#([0-9a-f]{6})$/i.exec(color || '');
-        if (!match) return '#101623';
-        const value = match[1];
-        const red = parseInt(value.slice(0, 2), 16);
-        const green = parseInt(value.slice(2, 4), 16);
-        const blue = parseInt(value.slice(4, 6), 16);
-        return (red * 299 + green * 587 + blue * 114) / 1000 > 156 ? '#101623' : '#ffffff';
-      };
-      const card = (x, y, width, height, title, color, options = {}) => {
-        const group = element('g', { 'aria-label': label(title) });
-        group.appendChild(element('rect', {
-          x: x - width / 2,
-          y: y - height / 2,
-          width,
-          height,
-          rx: 8,
-          fill: color,
-          stroke: color,
-          'stroke-width': 1
-        }));
-        group.appendChild(element('rect', {
-          x: x - width / 2,
-          y: y + height / 2 - 5,
-          width,
-          height: 5,
-          fill: 'rgba(255,255,255,0.44)'
-        }));
-        const icon = options.icon ? label(options.icon).slice(0, 2) : '';
-        if (icon) {
-          const iconText = element('text', {
-            x: x - width / 2 + 32,
-            y,
-            fill: contrast(color),
-            'font-size': 28,
-            'text-anchor': 'middle',
-            'dominant-baseline': 'middle',
-            'font-family': '"Apple Color Emoji", "Segoe UI Emoji", sans-serif'
-          });
-          iconText.textContent = icon;
-          group.appendChild(iconText);
-        }
-        addLines(group, wrap(title, options.lineChars || 8), x + (icon ? 14 : 0), y, {
-          fill: options.textColor || contrast(color),
-          size: options.size || 16,
-          lineHeight: options.lineHeight || 20,
-          weight: options.weight || '700'
-        });
-        return group;
-      };
-      const centerNode = (x, y, title) => {
-        const group = element('g', { 'aria-label': label(title) });
-        group.appendChild(element('circle', {
-          cx: x,
-          cy: y,
-          r: 102,
-          fill: '#2039d7',
-          stroke: '#6a8aff',
-          'stroke-width': 3
-        }));
-        group.appendChild(element('circle', {
-          cx: x,
-          cy: y,
-          r: 92,
-          fill: 'none',
-          stroke: 'rgba(255,255,255,0.16)',
-          'stroke-width': 1
-        }));
-        addLines(group, wrap(title, 7), x, y, {
-          fill: '#ffffff',
-          size: 22,
-          lineHeight: 27,
-          weight: '800'
-        });
-        return group;
-      };
-      const center = forestData && forestData.center ? forestData.center : {};
-      const branches = Array.isArray(forestData && forestData.branches)
-        ? forestData.branches.slice(0, 6).filter((branch) => branch && branch.title)
-        : [];
+    WordCloud(document.getElementById('cloud'), {
+      list: words,
+      gridSize: 10,
+      weightFactor: 3,
+      fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
+      backgroundColor: 'rgba(0,0,0,0)',
+      rotateRatio: 0.35,
+      minSize: 16,
+      shrinkToFit: true,
+      drawOutOfBound: false,
+      color: function () {
+        const colors = [
+          '#4de2ff',
+          '#7b61ff',
+          '#5b8cff',
+          '#9c7dff',
+          '#6a5acd',
+          '#b39ddb'
+        ];
 
-      if (!branches.length) {
-        forest.closest('.section').hidden = true;
-        return;
+        return colors[Math.floor(Math.random() * colors.length)];
       }
-
-      forest.replaceChildren();
-      const width = 1280;
-      const height = 760;
-      const centerX = width / 2;
-      const centerY = height / 2;
-      if (note) note.textContent = String(center.note || '群聊长期关注');
-
-      const layout = branches.map((branch, index) => {
-        const angle = ((-140 + (360 * index) / branches.length) * Math.PI) / 180;
-        const color = branch.color || palette[index % palette.length];
-        const branchX = centerX + Math.cos(angle) * 225;
-        const branchY = centerY + Math.sin(angle) * 225;
-        const topics = Array.isArray(branch.topics) ? branch.topics.slice(0, 6) : [];
-        return { branch, angle, color, branchX, branchY, topics };
-      });
-
-      layout.forEach(({ angle, color, branchX, branchY, topics }) => {
-        forest.appendChild(element('path', {
-          d: `M ${centerX + Math.cos(angle) * 92} ${centerY + Math.sin(angle) * 92} L ${branchX} ${branchY}`,
-          fill: 'none',
-          stroke: color,
-          'stroke-width': 9,
-          'stroke-linecap': 'round',
-          'stroke-opacity': 0.82
-        }));
-
-        topics.forEach((topic, topicIndex) => {
-          const offset = (topicIndex - (topics.length - 1) / 2) * (topics.length > 4 ? 62 : 82);
-          const perpendicularX = -Math.sin(angle);
-          const perpendicularY = Math.cos(angle);
-          const rawLeafX = branchX + Math.cos(angle) * 150 + perpendicularX * offset;
-          const rawLeafY = branchY + Math.sin(angle) * 150 + perpendicularY * offset;
-          const leafX = Math.max(118, Math.min(width - 118, rawLeafX));
-          const leafY = Math.max(42, Math.min(height - 42, rawLeafY));
-          forest.appendChild(element('path', {
-            d: `M ${branchX} ${branchY} L ${leafX} ${leafY}`,
-            fill: 'none',
-            stroke: color,
-            'stroke-width': 7,
-            'stroke-linecap': 'round',
-            'stroke-opacity': 0.74
-          }));
-        });
-      });
-
-      layout.forEach(({ branch, angle, color, branchX, branchY, topics }) => {
-        topics.forEach((topic, topicIndex) => {
-          const offset = (topicIndex - (topics.length - 1) / 2) * (topics.length > 4 ? 62 : 82);
-          const perpendicularX = -Math.sin(angle);
-          const perpendicularY = Math.cos(angle);
-          const rawLeafX = branchX + Math.cos(angle) * 150 + perpendicularX * offset;
-          const rawLeafY = branchY + Math.sin(angle) * 150 + perpendicularY * offset;
-          const leafX = Math.max(118, Math.min(width - 118, rawLeafX));
-          const leafY = Math.max(42, Math.min(height - 42, rawLeafY));
-          forest.appendChild(card(leafX, leafY, 190, 58, topic, color, {
-            size: 15,
-            lineChars: 9,
-            lineHeight: 18
-          }));
-        });
-        forest.appendChild(card(branchX, branchY, 224, 72, branch.title, color, {
-          icon: branch.icon,
-          size: 19,
-          lineChars: 8,
-          lineHeight: 22,
-          weight: '800'
-        }));
-      });
-
-      forest.appendChild(centerNode(centerX, centerY, center.title || '群聊核心关注'));
-    })();
-
-    if (window.WordCloud) {
-      WordCloud(document.getElementById('cloud'), {
-        list: words,
-        gridSize: 10,
-        weightFactor: 3,
-        fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
-        backgroundColor: 'rgba(0,0,0,0)',
-        rotateRatio: 0.35,
-        minSize: 16,
-        shrinkToFit: true,
-        drawOutOfBound: false,
-        color: function () {
-          const colors = [
-            '#4de2ff',
-            '#7b61ff',
-            '#5b8cff',
-            '#9c7dff',
-            '#6a5acd',
-            '#b39ddb'
-          ];
-
-          return colors[Math.floor(Math.random() * colors.length)];
-        }
-      });
-    }
+    });
 
     (function renderTrend() {
       const canvas = document.getElementById('trend');
