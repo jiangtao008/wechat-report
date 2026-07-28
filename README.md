@@ -2,11 +2,6 @@
 
 这是一个面向微信群聊记录的 AI 周报项目，核心目标是把原始聊天文本转换成一份可直接打开的 HTML 报告。报告重点不放在流水账式复述，而是聚焦社群动态、讨论节奏、活跃成员和群体情绪。
 
-当前目录里的周报产物示例：
-
-<img width="1922" height="2460" alt="image" src="https://github.com/user-attachments/assets/0106e651-9e5a-496d-bac5-4a860656ac1c" />
-
-
 ## 项目定位
 
 这个项目对应的 skill 是 `wechat-group-report`，用于分析微信群聊记录，并生成黑色科技风的日报、周报或月报。输入可以是：
