@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{GROUP_NAME}} 群聊动态报告</title>
   <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.3/src/wordcloud2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js';document.head.appendChild(s)"></script>
   <style>
     :root {
       --bg: #050816;
@@ -333,6 +334,102 @@
       font-size: 12px;
     }
 
+    .relationship-card {
+      padding: 18px;
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(77, 226, 255, 0.06), transparent 44%),
+        linear-gradient(180deg, rgba(13, 22, 46, 0.92), rgba(8, 14, 30, 0.96));
+      border: 1px solid rgba(157, 181, 230, 0.22);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      overflow: hidden;
+    }
+
+    .relationship-canvas {
+      display: block;
+      width: 100%;
+      min-height: 560px;
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at center, rgba(77, 226, 255, 0.06), transparent 36%),
+        rgba(255, 255, 255, 0.01);
+      border: 1px solid rgba(157, 181, 230, 0.16);
+      cursor: grab;
+    }
+
+    .relationship-canvas:active {
+      cursor: grabbing;
+    }
+
+    .relationship-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 14px 4px 4px;
+      justify-content: center;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(10, 18, 38, 0.7);
+      border: 1px solid rgba(90, 150, 255, 0.15);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .legend-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .rel-tooltip {
+      position: absolute;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(10, 18, 42, 0.94);
+      border: 1px solid rgba(90, 150, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      color: #eef5ff;
+      font-size: 13px;
+      line-height: 1.6;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 100;
+      max-width: 240px;
+      backdrop-filter: blur(8px);
+    }
+
+    .rel-tooltip strong {
+      color: #ffffff;
+    }
+
+    .stars-chart-container {
+      margin-top: 22px;
+      padding: 18px;
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(59, 240, 195, 0.06), transparent 44%),
+        linear-gradient(180deg, rgba(13, 22, 46, 0.88), rgba(8, 14, 30, 0.94));
+      border: 1px solid rgba(90, 150, 255, 0.16);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      overflow: hidden;
+    }
+
+    .stars-chart-container svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+    }
+
     .forest-section h2::before {
       display: none;
     }
@@ -504,9 +601,23 @@
 
     <div class="section">
       <h2>区间活跃之星</h2>
+      <div id="active-stars-chart" class="stars-chart-container"></div>
       <ol>
         {{ACTIVE_STARS}}
       </ol>
+    </div>
+
+    <div class="section">
+      <h2>🔗 群友关系图谱</h2>
+      <div class="relationship-card">
+        <div class="forest-head">
+          <span class="forest-kicker">从聊天互动中挖掘成员间的微妙关系</span>
+          <span id="rel-note" class="forest-note"></span>
+        </div>
+        <div id="relationship-graph" class="relationship-canvas"></div>
+        <div id="rel-legend" class="relationship-legend"></div>
+      </div>
+      <div id="rel-tooltip" class="rel-tooltip"></div>
     </div>
 
     <div class="section forest-section">
@@ -536,231 +647,505 @@
   </div>
   <script>
     const words = {{WORD_CLOUD_DATA}};
+    const reportType = '{{REPORT_TYPE}}';
     const trendData = {{TREND_DATA}};
     const forestData = {{TOPIC_FOREST_DATA}};
+    const relData = {{GROUP_RELATIONSHIPS}};
+    const activeStarsData = {{ACTIVE_STARS_DATA}};
 
-    (function renderTopicForest() {
-      const forest = document.getElementById('topic-forest');
-      const note = document.getElementById('forest-note');
-      const svgNs = 'http://www.w3.org/2000/svg';
-      const palette = ['#f27bbc', '#ffdf61', '#c8ef70', '#af7ce8', '#e97bde', '#6edfcf'];
-      const label = (value) => Array.from(String(value || '')).slice(0, 12).join('');
-      const element = (tag, attributes = {}) => {
-        const node = document.createElementNS(svgNs, tag);
-        Object.entries(attributes).forEach(([key, value]) => node.setAttribute(key, value));
-        return node;
-      };
-      const wrap = (value, width) => {
-        const characters = Array.from(label(value));
-        const lines = [];
-        for (let index = 0; index < characters.length; index += width) {
-          lines.push(characters.slice(index, index + width).join(''));
-        }
-        return lines.length ? lines : [''];
-      };
-      const addLines = (group, lines, x, y, options = {}) => {
-        const lineHeight = options.lineHeight || 20;
-        const startY = y - ((lines.length - 1) * lineHeight) / 2;
-        lines.forEach((line, index) => {
-          const text = element('text', {
-            x,
-            y: startY + index * lineHeight,
-            fill: options.fill || '#101623',
-            'font-size': options.size || 16,
-            'font-weight': options.weight || '700',
-            'text-anchor': 'middle',
-            'dominant-baseline': 'middle',
-            'font-family': '"Microsoft YaHei", "PingFang SC", sans-serif'
-          });
-          text.textContent = line;
-          group.appendChild(text);
-        });
-      };
-      const contrast = (color) => {
-        const match = /^#([0-9a-f]{6})$/i.exec(color || '');
-        if (!match) return '#101623';
-        const value = match[1];
-        const red = parseInt(value.slice(0, 2), 16);
-        const green = parseInt(value.slice(2, 4), 16);
-        const blue = parseInt(value.slice(4, 6), 16);
-        return (red * 299 + green * 587 + blue * 114) / 1000 > 156 ? '#101623' : '#ffffff';
-      };
-      const card = (x, y, width, height, title, color, options = {}) => {
-        const group = element('g', { 'aria-label': label(title) });
-        group.appendChild(element('rect', {
-          x: x - width / 2,
-          y: y - height / 2,
-          width,
-          height,
-          rx: 8,
-          fill: color,
-          stroke: color,
-          'stroke-width': 1
-        }));
-        group.appendChild(element('rect', {
-          x: x - width / 2,
-          y: y + height / 2 - 5,
-          width,
-          height: 5,
-          fill: 'rgba(255,255,255,0.44)'
-        }));
-        const icon = options.icon ? label(options.icon).slice(0, 2) : '';
-        if (icon) {
-          const iconText = element('text', {
-            x: x - width / 2 + 32,
-            y,
-            fill: contrast(color),
-            'font-size': 28,
-            'text-anchor': 'middle',
-            'dominant-baseline': 'middle',
-            'font-family': '"Apple Color Emoji", "Segoe UI Emoji", sans-serif'
-          });
-          iconText.textContent = icon;
-          group.appendChild(iconText);
-        }
-        addLines(group, wrap(title, options.lineChars || 8), x + (icon ? 14 : 0), y, {
-          fill: options.textColor || contrast(color),
-          size: options.size || 16,
-          lineHeight: options.lineHeight || 20,
-          weight: options.weight || '700'
-        });
-        return group;
-      };
-      const centerNode = (x, y, title) => {
-        const group = element('g', { 'aria-label': label(title) });
-        group.appendChild(element('circle', {
-          cx: x,
-          cy: y,
-          r: 102,
-          fill: '#2039d7',
-          stroke: '#6a8aff',
-          'stroke-width': 3
-        }));
-        group.appendChild(element('circle', {
-          cx: x,
-          cy: y,
-          r: 92,
-          fill: 'none',
-          stroke: 'rgba(255,255,255,0.16)',
-          'stroke-width': 1
-        }));
-        addLines(group, wrap(title, 7), x, y, {
-          fill: '#ffffff',
-          size: 22,
-          lineHeight: 27,
-          weight: '800'
-        });
-        return group;
-      };
-      const center = forestData && forestData.center ? forestData.center : {};
-      const branches = Array.isArray(forestData && forestData.branches)
-        ? forestData.branches.slice(0, 6).filter((branch) => branch && branch.title)
-        : [];
+    (function renderRelationships() {
+      try {
+      const container = document.getElementById('relationship-graph');
+      const legend = document.getElementById('rel-legend');
+      const tooltip = document.getElementById('rel-tooltip');
+      const note = document.getElementById('rel-note');
 
-      if (!branches.length) {
-        forest.closest('.section').hidden = true;
+      const nodes = Array.isArray(relData && relData.nodes) ? relData.nodes : [];
+      const links = Array.isArray(relData && relData.links) ? relData.links : [];
+
+      if (!nodes.length || !links.length) {
+        const section = container && container.closest('.section');
+        if (section) section.hidden = true;
         return;
       }
 
-      forest.replaceChildren();
-      const width = 1280;
-      const height = 760;
-      const centerX = width / 2;
-      const centerY = height / 2;
-      if (note) note.textContent = String(center.note || '群聊长期关注');
+      // Guard: D3 not loaded → silently skip
+      if (typeof d3 === 'undefined') {
+        const section = container && container.closest('.section');
+        if (section) section.hidden = true;
+        return;
+      }
 
-      const layout = branches.map((branch, index) => {
-        const angle = ((-140 + (360 * index) / branches.length) * Math.PI) / 180;
-        const color = branch.color || palette[index % palette.length];
-        const branchX = centerX + Math.cos(angle) * 225;
-        const branchY = centerY + Math.sin(angle) * 225;
-        const topics = Array.isArray(branch.topics) ? branch.topics.slice(0, 6) : [];
-        return { branch, angle, color, branchX, branchY, topics };
+      if (note && relData.note) note.textContent = String(relData.note);
+
+      const relTypes = [...new Set(links.map(function (l) { return l.type; }))];
+      const relColor = {
+        '基友': '#3bf0c3',
+        '塑料闺蜜': '#ff6b98',
+        '女神与舔狗': '#ffd93d',
+        '欢喜冤家': '#ff6b6b',
+        '姐妹淘': '#e056fd',
+        '商业互吹': '#ffa94d',
+        '捧哏与逗哏': '#4de2ff',
+        '搭子': '#7bed9f',
+        '师徒': '#a29bfe',
+        '大佬与萌新': '#fd79a8',
+        '点赞之交': '#74b9ff',
+        '竞争对手': '#fdcb6e'
+      };
+      const defaultColors = ['#3bf0c3', '#ff6b98', '#ffd93d', '#ff6b6b', '#e056fd', '#ffa94d', '#4de2ff', '#7bed9f'];
+      var colorMap = {};
+      relTypes.forEach(function (t, i) {
+        colorMap[t] = relColor[t] || defaultColors[i % defaultColors.length];
       });
 
-      layout.forEach(({ angle, color, branchX, branchY, topics }) => {
-        forest.appendChild(element('path', {
-          d: `M ${centerX + Math.cos(angle) * 92} ${centerY + Math.sin(angle) * 92} L ${branchX} ${branchY}`,
-          fill: 'none',
-          stroke: color,
-          'stroke-width': 9,
-          'stroke-linecap': 'round',
-          'stroke-opacity': 0.82
-        }));
+      // Build legend
+      legend.innerHTML = relTypes.map(function (t) {
+        return '<span class="legend-item"><span class="legend-dot" style="background:' + colorMap[t] + '"></span>' + t + '</span>';
+      }).join('');
 
-        topics.forEach((topic, topicIndex) => {
-          const offset = (topicIndex - (topics.length - 1) / 2) * (topics.length > 4 ? 62 : 82);
-          const perpendicularX = -Math.sin(angle);
-          const perpendicularY = Math.cos(angle);
-          const rawLeafX = branchX + Math.cos(angle) * 150 + perpendicularX * offset;
-          const rawLeafY = branchY + Math.sin(angle) * 150 + perpendicularY * offset;
-          const leafX = Math.max(118, Math.min(width - 118, rawLeafX));
-          const leafY = Math.max(42, Math.min(height - 42, rawLeafY));
-          forest.appendChild(element('path', {
-            d: `M ${branchX} ${branchY} L ${leafX} ${leafY}`,
-            fill: 'none',
-            stroke: color,
-            'stroke-width': 7,
-            'stroke-linecap': 'round',
-            'stroke-opacity': 0.74
-          }));
+      var w = container.clientWidth || 860;
+      var h = 560;
+      container.style.height = h + 'px';
+
+      var svg = d3.select(container)
+        .append('svg')
+        .attr('width', w)
+        .attr('height', h)
+        .attr('viewBox', [0, 0, w, h])
+        .style('display', 'block');
+
+      var g = svg.append('g');
+
+      // Zoom
+      svg.call(d3.zoom().scaleExtent([0.3, 3]).on('zoom', function (event) {
+        g.attr('transform', event.transform);
+      }));
+
+      // Arrow markers for links
+      relTypes.forEach(function (t) {
+        svg.append('defs').append('marker')
+          .attr('id', 'arrow-' + t.replace(/\s/g, ''))
+          .attr('viewBox', '0 -5 10 10')
+          .attr('refX', 30)
+          .attr('refY', 0)
+          .attr('markerWidth', 8)
+          .attr('markerHeight', 8)
+          .attr('orient', 'auto')
+          .append('path')
+          .attr('d', 'M0,-5L10,0L0,5')
+          .attr('fill', colorMap[t] || '#888');
+      });
+
+      // Build simulation
+      var simulation = d3.forceSimulation(nodes)
+        .force('link', d3.forceLink(links).id(function (d) { return d.id; }).distance(130).strength(0.4))
+        .force('charge', d3.forceManyBody().strength(-380))
+        .force('center', d3.forceCenter(w / 2, h / 2))
+        .force('collision', d3.forceCollide(52));
+
+      // Draw links
+      var link = g.append('g')
+        .selectAll('line')
+        .data(links)
+        .join('line')
+        .attr('stroke', function (d) { return colorMap[d.type] || '#555'; })
+        .attr('stroke-width', function (d) { return (d.strength || 5) * 0.7; })
+        .attr('stroke-dasharray', function (d) {
+          var unstable = ['塑料闺蜜', '欢喜冤家', '竞争对手'];
+          return unstable.indexOf(d.type) >= 0 ? '6,4' : 'none';
+        })
+        .attr('stroke-opacity', 0.7)
+        .attr('marker-end', function (d) { return 'url(#arrow-' + d.type.replace(/\s/g, '') + ')'; });
+
+      // Link labels
+      var linkLabel = g.append('g')
+        .selectAll('text')
+        .data(links)
+        .join('text')
+        .text(function (d) { return d.type; })
+        .attr('fill', function (d) { return colorMap[d.type] || '#888'; })
+        .attr('font-size', 11)
+        .attr('font-weight', 600)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('paint-order', 'stroke')
+        .attr('stroke', 'rgba(5,8,22,0.85)')
+        .attr('stroke-width', 3)
+        .attr('stroke-linecap', 'round')
+        .attr('stroke-linejoin', 'round')
+        .style('pointer-events', 'none');
+
+      // Draw nodes
+      var node = g.append('g')
+        .selectAll('g')
+        .data(nodes)
+        .join('g')
+        .call(d3.drag()
+          .on('start', function (event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+          })
+          .on('drag', function (event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+          })
+          .on('end', function (event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+          })
+        );
+
+      // Node circles
+      node.append('circle')
+        .attr('r', function (d) { return Math.min(48, (d.weight || 10) + 14); })
+        .attr('fill', function (d) { return d.color || '#5b8cff'; })
+        .attr('stroke', function (d) { return d.color || '#5b8cff'; })
+        .attr('stroke-width', 2)
+        .attr('stroke-opacity', 0.5)
+        .style('filter', 'drop-shadow(0 0 8px rgba(91,140,255,0.3))')
+        .style('cursor', 'pointer');
+
+      // Glow ring
+      node.append('circle')
+        .attr('r', function (d) { return Math.min(48, (d.weight || 10) + 14) + 4; })
+        .attr('fill', 'none')
+        .attr('stroke', function (d) { return d.color || '#5b8cff'; })
+        .attr('stroke-width', 1)
+        .attr('stroke-opacity', 0.2);
+
+      // Node labels
+      node.append('text')
+        .text(function (d) { return Array.from(String(d.id || '')).slice(0, 8).join(''); })
+        .attr('fill', '#ffffff')
+        .attr('font-size', function (d) { return Math.min(14, (d.weight || 10) + 7); })
+        .attr('font-weight', 700)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif')
+        .style('pointer-events', 'none');
+
+      // Node subtitle (relationship role)
+      node.append('text')
+        .text(function (d) { return d.role || ''; })
+        .attr('fill', 'rgba(255,255,255,0.6)')
+        .attr('font-size', 10)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('dy', function (d) { return (Math.min(48, (d.weight || 10) + 14)) + 14; })
+        .attr('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif')
+        .style('pointer-events', 'none');
+
+      // Hover tooltip
+      node.on('mouseover', function (event, d) {
+        var rels = links.filter(function (l) {
+          return (l.source.id || l.source) === d.id || (l.target.id || l.target) === d.id;
         });
-      });
-
-      layout.forEach(({ branch, angle, color, branchX, branchY, topics }) => {
-        topics.forEach((topic, topicIndex) => {
-          const offset = (topicIndex - (topics.length - 1) / 2) * (topics.length > 4 ? 62 : 82);
-          const perpendicularX = -Math.sin(angle);
-          const perpendicularY = Math.cos(angle);
-          const rawLeafX = branchX + Math.cos(angle) * 150 + perpendicularX * offset;
-          const rawLeafY = branchY + Math.sin(angle) * 150 + perpendicularY * offset;
-          const leafX = Math.max(118, Math.min(width - 118, rawLeafX));
-          const leafY = Math.max(42, Math.min(height - 42, rawLeafY));
-          forest.appendChild(card(leafX, leafY, 190, 58, topic, color, {
-            size: 15,
-            lineChars: 9,
-            lineHeight: 18
-          }));
+        var html = '<strong>' + d.id + '</strong>';
+        if (d.role) html += '<br>角色：' + d.role;
+        html += '<br>互动关系：';
+        rels.slice(0, 5).forEach(function (r) {
+          var peer = (r.source.id || r.source) === d.id ? (r.target.id || r.target) : (r.source.id || r.source);
+          html += '<br> · → ' + peer + ' <span style="color:' + (colorMap[r.type] || '#888') + '">' + r.type + '</span>';
         });
-        forest.appendChild(card(branchX, branchY, 224, 72, branch.title, color, {
-          icon: branch.icon,
-          size: 19,
-          lineChars: 8,
-          lineHeight: 22,
-          weight: '800'
-        }));
+        tooltip.innerHTML = html;
+        tooltip.style.opacity = 1;
+        var rect = container.getBoundingClientRect();
+        tooltip.style.left = Math.min(event.clientX - rect.left + 12, w - 260) + 'px';
+        tooltip.style.top = Math.max(event.clientY - rect.top - 10, 10) + 'px';
+      }).on('mousemove', function (event) {
+        var rect = container.getBoundingClientRect();
+        tooltip.style.left = Math.min(event.clientX - rect.left + 12, w - 260) + 'px';
+        tooltip.style.top = Math.max(event.clientY - rect.top - 10, 10) + 'px';
+      }).on('mouseout', function () {
+        tooltip.style.opacity = 0;
       });
 
-      forest.appendChild(centerNode(centerX, centerY, center.title || '群聊核心关注'));
+      // Physics tick
+      simulation.on('tick', function () {
+        link
+          .attr('x1', function (d) { return d.source.x; })
+          .attr('y1', function (d) { return d.source.y; })
+          .attr('x2', function (d) { return d.target.x; })
+          .attr('y2', function (d) { return d.target.y; });
+
+        linkLabel
+          .attr('x', function (d) { return (d.source.x + d.target.x) / 2; })
+          .attr('y', function (d) { return (d.source.y + d.target.y) / 2; });
+
+        node.attr('transform', function (d) { return 'translate(' + d.x + ',' + d.y + ')'; });
+      });
+      } catch(e) { console.warn('关系图谱渲染失败:', e); }
     })();
 
-    if (window.WordCloud) {
-      WordCloud(document.getElementById('cloud'), {
-        list: words,
-        gridSize: 10,
-        weightFactor: 3,
-        fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
-        backgroundColor: 'rgba(0,0,0,0)',
-        rotateRatio: 0.35,
-        minSize: 16,
-        shrinkToFit: true,
-        drawOutOfBound: false,
-        color: function () {
-          const colors = [
-            '#4de2ff',
-            '#7b61ff',
-            '#5b8cff',
-            '#9c7dff',
-            '#6a5acd',
-            '#b39ddb'
-          ];
+    (function renderActiveStarsChart() {
+      try {
+      const container = document.getElementById('active-stars-chart');
+      const data = Array.isArray(activeStarsData) ? activeStarsData : [];
+      if (!container || !data.length) return;
 
-          return colors[Math.floor(Math.random() * colors.length)];
-        }
+      const names = data.map(function (d) { return d[0]; });
+      const values = data.map(function (d) { return d[1]; });
+      var maxVal = 0;
+      values.forEach(function (v) { if (v > maxVal) maxVal = v; });
+      maxVal = Math.ceil(maxVal * 1.12);
+
+      var w = container.clientWidth || 820;
+      var margin = { top: 14, right: 72, bottom: 14, left: 0 };
+      var rowH = 36;
+      var gap = 6;
+      var barH = rowH - gap;
+      var h = data.length * rowH + margin.top + margin.bottom;
+
+      // measure max name width using canvas (reliable for CJK)
+      var meas = document.createElement('canvas').getContext('2d');
+      meas.font = '13px "Microsoft YaHei", "PingFang SC", sans-serif';
+      var maxNameW = 0;
+      names.forEach(function (n) {
+        var bw = meas.measureText(n).width;
+        if (bw > maxNameW) maxNameW = bw;
       });
-    }
+      margin.left = Math.max(maxNameW + 20, 72);
+
+      var plotW = w - margin.left - margin.right;
+
+      var svg = d3.select(container)
+        .append('svg')
+        .attr('width', w)
+        .attr('height', h)
+        .attr('viewBox', [0, 0, w, h])
+        .style('overflow', 'visible');
+
+      var defs = svg.append('defs');
+      data.forEach(function (d, i) {
+        var ratio = d[1] / maxVal;
+        var gradId = 'bar-grad-' + i;
+        var grad = defs.append('linearGradient')
+          .attr('id', gradId)
+          .attr('x1', '0%').attr('y1', '0%')
+          .attr('x2', '100%').attr('y2', '0%');
+        grad.append('stop').attr('offset', '0%')
+          .attr('stop-color', ratio > 0.7 ? '#4de2ff' : ratio > 0.4 ? '#5b8cff' : '#7b61ff')
+          .attr('stop-opacity', 0.85);
+        grad.append('stop').attr('offset', '100%')
+          .attr('stop-color', ratio > 0.7 ? '#5b8cff' : ratio > 0.4 ? '#7b61ff' : '#a29bfe')
+          .attr('stop-opacity', 0.55);
+      });
+
+      var y = d3.scaleBand()
+        .domain(d3.range(data.length))
+        .range([margin.top, h - margin.bottom])
+        .padding(0.15);
+
+      var x = d3.scaleLinear()
+        .domain([0, maxVal])
+        .range([margin.left, w - margin.right]);
+
+      svg.append('g')
+        .selectAll('rect.bg')
+        .data(d3.range(data.length))
+        .join('rect')
+        .attr('class', 'bg')
+        .attr('x', margin.left)
+        .attr('y', function (d) { return y(d); })
+        .attr('height', y.bandwidth())
+        .attr('width', plotW)
+        .attr('fill', 'rgba(255,255,255,0.02)')
+        .attr('rx', 4);
+
+      svg.append('g')
+        .selectAll('rect.bar')
+        .data(data)
+        .join('rect')
+        .attr('class', 'bar')
+        .attr('y', function (d, i) { return y(i); })
+        .attr('x', margin.left)
+        .attr('height', y.bandwidth())
+        .attr('width', function (d) { return Math.max(4, x(d[1]) - margin.left); })
+        .attr('fill', function (d, i) { return 'url(#bar-grad-' + i + ')'; })
+        .attr('rx', function (d) { return (y.bandwidth()) / 2; })
+        .attr('ry', function (d) { return (y.bandwidth()) / 2; });
+
+      // name labels
+      svg.append('g')
+        .selectAll('text.name')
+        .data(data)
+        .join('text')
+        .attr('class', 'name')
+        .attr('x', margin.left - 8)
+        .attr('y', function (d, i) { return y(i) + y.bandwidth() / 2; })
+        .attr('fill', '#dbe7ff')
+        .attr('font-size', 13)
+        .attr('font-weight', 600)
+        .attr('text-anchor', 'end')
+        .attr('dominant-baseline', 'middle')
+        .attr('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif')
+        .text(function (d) { return d[0]; });
+
+      // value labels at bar end
+      svg.append('g')
+        .selectAll('text.val')
+        .data(data)
+        .join('text')
+        .attr('class', 'val')
+        .attr('x', function (d) { return Math.max(x(d[1]) + 8, margin.left + 8); })
+        .attr('y', function (d, i) { return y(i) + y.bandwidth() / 2; })
+        .attr('fill', '#4de2ff')
+        .attr('font-size', 13)
+        .attr('font-weight', 700)
+        .attr('dominant-baseline', 'middle')
+        .attr('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif')
+        .text(function (d) { return d[1]; });
+
+      // grid lines
+      var ticks = x.ticks(5);
+      svg.append('g')
+        .selectAll('line.grid')
+        .data(ticks)
+        .join('line')
+        .attr('class', 'grid')
+        .attr('x1', function (d) { return x(d); })
+        .attr('x2', function (d) { return x(d); })
+        .attr('y1', margin.top)
+        .attr('y2', h - margin.bottom)
+        .attr('stroke', 'rgba(90, 150, 255, 0.1)')
+        .attr('stroke-width', 1)
+        .attr('stroke-dasharray', '4,4');
+      } catch(e) { console.warn('活跃之星图表渲染失败:', e); }
+    })();
+
+    (function renderTopicForest() {
+      try {
+        const svg = document.getElementById('topic-forest');
+        const noteEl = document.getElementById('forest-note');
+        if (!svg || !forestData || !forestData.center) return;
+
+        // 已有预渲染内容（LLM 生成）→ 只设备注
+        if (svg.children.length > 0) {
+          if (noteEl) noteEl.textContent = String(forestData.center.note || '');
+          return;
+        }
+
+        if (noteEl) noteEl.textContent = String(forestData.center.note || '');
+
+        var W = 1280, H = 760, cx = 640, cy = 380;
+        var branchDist = 175, leafDist = 310;
+        var NS = 'http://www.w3.org/2000/svg';
+
+        function mk(tag, attrs) {
+          var el = document.createElementNS(NS, tag);
+          for (var k in attrs) el.setAttribute(k, attrs[k]);
+          return el;
+        }
+
+        // 中心圆
+        svg.appendChild(mk('circle', {cx:cx, cy:cy, r:90, fill:'#1a2db5', stroke:'#5b7dff', 'stroke-width':3}));
+        svg.appendChild(mk('circle', {cx:cx, cy:cy, r:80, fill:'none', stroke:'rgba(255,255,255,0.1)', 'stroke-width':1}));
+
+        // 中心文字（自动换行）
+        var title = forestData.center.title || '核心关注';
+        var half = Math.ceil(title.length / 2);
+        var lines = title.length > 6 ? [title.slice(0, half), title.slice(half)] : [title];
+        lines.forEach(function(line, i) {
+          var t = mk('text', {x:cx, y:cy + (i - (lines.length-1)/2)*24, fill:'#ffffff',
+            'font-size': '21', 'font-weight':'800', 'text-anchor':'middle', 'dominant-baseline':'middle',
+            'font-family':'Microsoft YaHei, PingFang SC, sans-serif'});
+          t.textContent = line;
+          svg.appendChild(t);
+        });
+
+        if (!forestData.branches || !forestData.branches.length) return;
+
+        var branches = forestData.branches, n = branches.length;
+
+        branches.forEach(function(branch, i) {
+          var angle = (i / n) * 2 * Math.PI - Math.PI / 2;
+          var color = branch.color || '#5b8cff';
+          var bx = cx + Math.cos(angle) * branchDist;
+          var by = cy + Math.sin(angle) * branchDist;
+
+          // 连线：中心 → 分支
+          svg.appendChild(mk('line', {x1:cx, y1:cy, x2:bx, y2:by,
+            stroke:color, 'stroke-width':'5', 'stroke-linecap':'round', 'stroke-opacity':'0.5'}));
+
+          // 分支卡
+          var bw = 180, bh = 50;
+          svg.appendChild(mk('rect', {x:bx-bw/2, y:by-bh/2, width:bw, height:bh, rx:'8', fill:color}));
+          svg.appendChild(mk('rect', {x:bx-bw/2, y:by+bh/2-5, width:bw, height:'5', rx:'2',
+            fill:'rgba(255,255,255,0.3)'}));
+
+          // 分支图标
+          if (branch.icon) {
+            var ic = mk('text', {x:bx-bw/2+24, y:by+1, fill:'#101623', 'font-size':'24',
+              'text-anchor':'middle', 'dominant-baseline':'middle',
+              'font-family':'Apple Color Emoji, Segoe UI Emoji, sans-serif'});
+            ic.textContent = branch.icon;
+            svg.appendChild(ic);
+          }
+
+          // 分支标题
+          var bt = mk('text', {x:bx + (branch.icon ? 18 : 0), y:by+1, fill:'#101623',
+            'font-size':'16', 'font-weight':'700', 'text-anchor':'middle', 'dominant-baseline':'middle',
+            'font-family':'Microsoft YaHei, PingFang SC, sans-serif'});
+          bt.textContent = branch.title || '';
+          svg.appendChild(bt);
+
+          // 叶子话题
+          if (branch.topics && branch.topics.length) {
+            var lc = branch.topics.length;
+            var spread = Math.min(Math.PI / 2.2, Math.PI / (lc + 1) * 2);
+            var startA = angle - spread / 2;
+
+            branch.topics.forEach(function(topic, ti) {
+              var la = startA + (ti / Math.max(1, lc - 1)) * spread;
+              var lx = cx + Math.cos(la) * leafDist;
+              var ly = cy + Math.sin(la) * leafDist;
+
+              svg.appendChild(mk('line', {x1:bx, y1:by, x2:lx, y2:ly,
+                stroke:color, 'stroke-width':'2.5', 'stroke-linecap':'round', 'stroke-opacity':'0.35'}));
+
+              var lw = 154, lh = 36;
+              svg.appendChild(mk('rect', {x:lx-lw/2, y:ly-lh/2, width:lw, height:lh, rx:'6',
+                fill:color, 'fill-opacity':'0.7'}));
+
+              var lt = mk('text', {x:lx, y:ly+1, fill:'#101623', 'font-size':'13', 'font-weight':'600',
+                'text-anchor':'middle', 'dominant-baseline':'middle',
+                'font-family':'Microsoft YaHei, PingFang SC, sans-serif'});
+              lt.textContent = topic;
+              svg.appendChild(lt);
+            });
+          }
+        });
+      } catch(e) { console.warn('话题森林渲染失败:', e); }
+    })();
+
+    (function renderWordCloud() {
+      try {
+      const cloudCanvas = document.getElementById('cloud');
+      if (window.WordCloud && cloudCanvas && words && words.length) {
+        WordCloud(cloudCanvas, {
+          list: words,
+          gridSize: 10,
+          weightFactor: 3,
+          fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
+          backgroundColor: 'rgba(0,0,0,0)',
+          rotateRatio: 0.35,
+          minSize: 16,
+          shrinkToFit: true,
+          drawOutOfBound: false,
+          color: function () {
+            const colors = ['#4de2ff','#7b61ff','#5b8cff','#9c7dff','#6a5acd','#b39ddb'];
+            return colors[Math.floor(Math.random() * colors.length)];
+          }
+        });
+      }
+      } catch(e) { console.warn('词云渲染失败:', e); }
+    })();
 
     (function renderTrend() {
+      try {
       const canvas = document.getElementById('trend');
       if (!canvas || !trendData || !trendData.length) return;
 
@@ -849,16 +1234,25 @@
       ctx.fillStyle = '#8ea4d4';
       ctx.font = '12px "Microsoft YaHei", "PingFang SC", sans-serif';
       ctx.textAlign = 'center';
-      const labelStep = points.length <= 8 ? 1 : points.length <= 16 ? 2 : points.length <= 24 ? 3 : 4;
+      // 日报 → 按小时显示（约24点），周报/月报 → 按天显示
+      const isHourly = (reportType === '日报' || trendData.length >= 20);
+      let labelStep;
+      if (isHourly) {
+        labelStep = Math.max(1, Math.floor(points.length / 5)); // 显示约5-6个标签
+      } else {
+        labelStep = points.length <= 8 ? 1 : points.length <= 16 ? 2 : points.length <= 24 ? 3 : Math.ceil(points.length / 7);
+      }
       points.forEach((point, index) => {
         if (index === 0 || index === points.length - 1 || index % labelStep === 0) {
-          ctx.fillText(point.label, point.x, h - 12);
+          const label = isHourly ? point.label.replace(':00', '时') : point.label;
+          ctx.fillText(label, point.x, h - 12);
         }
       });
 
       ctx.textAlign = 'right';
       ctx.fillText(String(maxY), leftPad - 10, topPad + 4);
       ctx.fillText(String(minY), leftPad - 10, h - bottomPad + 4);
+      } catch(e) { console.warn('趋势图渲染失败:', e); }
     })();
   </script>
 </body>
