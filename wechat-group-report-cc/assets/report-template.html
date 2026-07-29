@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{GROUP_NAME}} 群聊动态报告</title>
   <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.3/src/wordcloud2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js"></script>
   <style>
     :root {
       --bg: #050816;
@@ -333,6 +334,102 @@
       font-size: 12px;
     }
 
+    .relationship-card {
+      padding: 18px;
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(77, 226, 255, 0.06), transparent 44%),
+        linear-gradient(180deg, rgba(13, 22, 46, 0.92), rgba(8, 14, 30, 0.96));
+      border: 1px solid rgba(157, 181, 230, 0.22);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      overflow: hidden;
+    }
+
+    .relationship-canvas {
+      display: block;
+      width: 100%;
+      min-height: 560px;
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at center, rgba(77, 226, 255, 0.06), transparent 36%),
+        rgba(255, 255, 255, 0.01);
+      border: 1px solid rgba(157, 181, 230, 0.16);
+      cursor: grab;
+    }
+
+    .relationship-canvas:active {
+      cursor: grabbing;
+    }
+
+    .relationship-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 14px 4px 4px;
+      justify-content: center;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(10, 18, 38, 0.7);
+      border: 1px solid rgba(90, 150, 255, 0.15);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .legend-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .rel-tooltip {
+      position: absolute;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(10, 18, 42, 0.94);
+      border: 1px solid rgba(90, 150, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      color: #eef5ff;
+      font-size: 13px;
+      line-height: 1.6;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 100;
+      max-width: 240px;
+      backdrop-filter: blur(8px);
+    }
+
+    .rel-tooltip strong {
+      color: #ffffff;
+    }
+
+    .stars-chart-container {
+      margin-top: 22px;
+      padding: 18px;
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(59, 240, 195, 0.06), transparent 44%),
+        linear-gradient(180deg, rgba(13, 22, 46, 0.88), rgba(8, 14, 30, 0.94));
+      border: 1px solid rgba(90, 150, 255, 0.16);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      overflow: hidden;
+    }
+
+    .stars-chart-container svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+    }
+
     .forest-section h2::before {
       display: none;
     }
@@ -508,6 +605,20 @@
         {{ACTIVE_STARS}}
       </ol>
     </div>
+    <div id="active-stars-chart" class="stars-chart-container"></div>
+
+    <div class="section">
+      <h2>🔗 群友关系图谱</h2>
+      <div class="relationship-card">
+        <div class="forest-head">
+          <span class="forest-kicker">从聊天互动中挖掘成员间的微妙关系</span>
+          <span id="rel-note" class="forest-note"></span>
+        </div>
+        <div id="relationship-graph" class="relationship-canvas"></div>
+        <div id="rel-legend" class="relationship-legend"></div>
+      </div>
+      <div id="rel-tooltip" class="rel-tooltip"></div>
+    </div>
 
     <div class="section forest-section">
       <h2><span class="forest-title-icon">🌳</span>本期话题小森林</h2>
@@ -538,6 +649,364 @@
     const words = {{WORD_CLOUD_DATA}};
     const trendData = {{TREND_DATA}};
     const forestData = {{TOPIC_FOREST_DATA}};
+    const relData = {{GROUP_RELATIONSHIPS}};
+    const activeStarsData = {{ACTIVE_STARS_DATA}};
+
+    (function renderRelationships() {
+      const container = document.getElementById('relationship-graph');
+      const legend = document.getElementById('rel-legend');
+      const tooltip = document.getElementById('rel-tooltip');
+      const note = document.getElementById('rel-note');
+
+      const nodes = Array.isArray(relData && relData.nodes) ? relData.nodes : [];
+      const links = Array.isArray(relData && relData.links) ? relData.links : [];
+
+      if (!nodes.length || !links.length) {
+        const section = container && container.closest('.section');
+        if (section) section.hidden = true;
+        return;
+      }
+
+      if (note && relData.note) note.textContent = String(relData.note);
+
+      const relTypes = [...new Set(links.map(function (l) { return l.type; }))];
+      const relColor = {
+        '基友': '#3bf0c3',
+        '塑料闺蜜': '#ff6b98',
+        '女神与舔狗': '#ffd93d',
+        '欢喜冤家': '#ff6b6b',
+        '姐妹淘': '#e056fd',
+        '商业互吹': '#ffa94d',
+        '捧哏与逗哏': '#4de2ff',
+        '搭子': '#7bed9f',
+        '师徒': '#a29bfe',
+        '大佬与萌新': '#fd79a8',
+        '点赞之交': '#74b9ff',
+        '竞争对手': '#fdcb6e'
+      };
+      const defaultColors = ['#3bf0c3', '#ff6b98', '#ffd93d', '#ff6b6b', '#e056fd', '#ffa94d', '#4de2ff', '#7bed9f'];
+      var colorMap = {};
+      relTypes.forEach(function (t, i) {
+        colorMap[t] = relColor[t] || defaultColors[i % defaultColors.length];
+      });
+
+      // Build legend
+      legend.innerHTML = relTypes.map(function (t) {
+        return '<span class="legend-item"><span class="legend-dot" style="background:' + colorMap[t] + '"></span>' + t + '</span>';
+      }).join('');
+
+      var w = container.clientWidth || 860;
+      var h = 560;
+      container.style.height = h + 'px';
+
+      var svg = d3.select(container)
+        .append('svg')
+        .attr('width', w)
+        .attr('height', h)
+        .attr('viewBox', [0, 0, w, h])
+        .style('display', 'block');
+
+      var g = svg.append('g');
+
+      // Zoom
+      svg.call(d3.zoom().scaleExtent([0.3, 3]).on('zoom', function (event) {
+        g.attr('transform', event.transform);
+      }));
+
+      // Arrow markers for links
+      relTypes.forEach(function (t) {
+        svg.append('defs').append('marker')
+          .attr('id', 'arrow-' + t.replace(/\s/g, ''))
+          .attr('viewBox', '0 -5 10 10')
+          .attr('refX', 30)
+          .attr('refY', 0)
+          .attr('markerWidth', 8)
+          .attr('markerHeight', 8)
+          .attr('orient', 'auto')
+          .append('path')
+          .attr('d', 'M0,-5L10,0L0,5')
+          .attr('fill', colorMap[t] || '#888');
+      });
+
+      // Build simulation
+      var simulation = d3.forceSimulation(nodes)
+        .force('link', d3.forceLink(links).id(function (d) { return d.id; }).distance(130).strength(0.4))
+        .force('charge', d3.forceManyBody().strength(-380))
+        .force('center', d3.forceCenter(w / 2, h / 2))
+        .force('collision', d3.forceCollide(52));
+
+      // Draw links
+      var link = g.append('g')
+        .selectAll('line')
+        .data(links)
+        .join('line')
+        .attr('stroke', function (d) { return colorMap[d.type] || '#555'; })
+        .attr('stroke-width', function (d) { return (d.strength || 5) * 0.7; })
+        .attr('stroke-dasharray', function (d) {
+          var unstable = ['塑料闺蜜', '欢喜冤家', '竞争对手'];
+          return unstable.indexOf(d.type) >= 0 ? '6,4' : 'none';
+        })
+        .attr('stroke-opacity', 0.7)
+        .attr('marker-end', function (d) { return 'url(#arrow-' + d.type.replace(/\s/g, '') + ')'; });
+
+      // Link labels
+      var linkLabel = g.append('g')
+        .selectAll('text')
+        .data(links)
+        .join('text')
+        .text(function (d) { return d.type; })
+        .attr('fill', function (d) { return colorMap[d.type] || '#888'; })
+        .attr('font-size', 11)
+        .attr('font-weight', 600)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('paint-order', 'stroke')
+        .attr('stroke', 'rgba(5,8,22,0.85)')
+        .attr('stroke-width', 3)
+        .attr('stroke-linecap', 'round')
+        .attr('stroke-linejoin', 'round')
+        .style('pointer-events', 'none');
+
+      // Draw nodes
+      var node = g.append('g')
+        .selectAll('g')
+        .data(nodes)
+        .join('g')
+        .call(d3.drag()
+          .on('start', function (event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+          })
+          .on('drag', function (event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+          })
+          .on('end', function (event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+          })
+        );
+
+      // Node circles
+      node.append('circle')
+        .attr('r', function (d) { return Math.min(48, (d.weight || 10) + 14); })
+        .attr('fill', function (d) { return d.color || '#5b8cff'; })
+        .attr('stroke', function (d) { return d.color || '#5b8cff'; })
+        .attr('stroke-width', 2)
+        .attr('stroke-opacity', 0.5)
+        .style('filter', 'drop-shadow(0 0 8px rgba(91,140,255,0.3))')
+        .style('cursor', 'pointer');
+
+      // Glow ring
+      node.append('circle')
+        .attr('r', function (d) { return Math.min(48, (d.weight || 10) + 14) + 4; })
+        .attr('fill', 'none')
+        .attr('stroke', function (d) { return d.color || '#5b8cff'; })
+        .attr('stroke-width', 1)
+        .attr('stroke-opacity', 0.2);
+
+      // Node labels
+      node.append('text')
+        .text(function (d) { return Array.from(String(d.id || '')).slice(0, 8).join(''); })
+        .attr('fill', '#ffffff')
+        .attr('font-size', function (d) { return Math.min(14, (d.weight || 10) + 7); })
+        .attr('font-weight', 700)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif')
+        .style('pointer-events', 'none');
+
+      // Node subtitle (relationship role)
+      node.append('text')
+        .text(function (d) { return d.role || ''; })
+        .attr('fill', 'rgba(255,255,255,0.6)')
+        .attr('font-size', 10)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('dy', function (d) { return (Math.min(48, (d.weight || 10) + 14)) + 14; })
+        .attr('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif')
+        .style('pointer-events', 'none');
+
+      // Hover tooltip
+      node.on('mouseover', function (event, d) {
+        var rels = links.filter(function (l) {
+          return (l.source.id || l.source) === d.id || (l.target.id || l.target) === d.id;
+        });
+        var html = '<strong>' + d.id + '</strong>';
+        if (d.role) html += '<br>角色：' + d.role;
+        html += '<br>互动关系：';
+        rels.slice(0, 5).forEach(function (r) {
+          var peer = (r.source.id || r.source) === d.id ? (r.target.id || r.target) : (r.source.id || r.source);
+          html += '<br> · → ' + peer + ' <span style="color:' + (colorMap[r.type] || '#888') + '">' + r.type + '</span>';
+        });
+        tooltip.innerHTML = html;
+        tooltip.style.opacity = 1;
+        var rect = container.getBoundingClientRect();
+        tooltip.style.left = Math.min(event.clientX - rect.left + 12, w - 260) + 'px';
+        tooltip.style.top = Math.max(event.clientY - rect.top - 10, 10) + 'px';
+      }).on('mousemove', function (event) {
+        var rect = container.getBoundingClientRect();
+        tooltip.style.left = Math.min(event.clientX - rect.left + 12, w - 260) + 'px';
+        tooltip.style.top = Math.max(event.clientY - rect.top - 10, 10) + 'px';
+      }).on('mouseout', function () {
+        tooltip.style.opacity = 0;
+      });
+
+      // Physics tick
+      simulation.on('tick', function () {
+        link
+          .attr('x1', function (d) { return d.source.x; })
+          .attr('y1', function (d) { return d.source.y; })
+          .attr('x2', function (d) { return d.target.x; })
+          .attr('y2', function (d) { return d.target.y; });
+
+        linkLabel
+          .attr('x', function (d) { return (d.source.x + d.target.x) / 2; })
+          .attr('y', function (d) { return (d.source.y + d.target.y) / 2; });
+
+        node.attr('transform', function (d) { return 'translate(' + d.x + ',' + d.y + ')'; });
+      });
+    })();
+
+    (function renderActiveStarsChart() {
+      const container = document.getElementById('active-stars-chart');
+      const data = Array.isArray(activeStarsData) ? activeStarsData : [];
+      if (!container || !data.length) return;
+
+      const names = data.map(function (d) { return d[0]; });
+      const values = data.map(function (d) { return d[1]; });
+      var maxVal = 0;
+      values.forEach(function (v) { if (v > maxVal) maxVal = v; });
+      maxVal = Math.ceil(maxVal * 1.12);
+
+      var w = container.clientWidth || 820;
+      var margin = { top: 14, right: 72, bottom: 14, left: 0 };
+      var rowH = 36;
+      var gap = 6;
+      var barH = rowH - gap;
+      var h = data.length * rowH + margin.top + margin.bottom;
+
+      // measure max name width
+      var temp = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      temp.setAttribute('font-size', '13');
+      temp.setAttribute('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif');
+      document.body.appendChild(temp);
+      var maxNameW = 0;
+      names.forEach(function (n) {
+        temp.textContent = n;
+        var bw = temp.getBBox ? temp.getBBox().width : n.length * 13;
+        if (bw > maxNameW) maxNameW = bw;
+      });
+      document.body.removeChild(temp);
+      margin.left = Math.min(Math.max(maxNameW + 16, 72), 200);
+
+      var plotW = w - margin.left - margin.right;
+
+      var svg = d3.select(container)
+        .append('svg')
+        .attr('width', w)
+        .attr('height', h)
+        .attr('viewBox', [0, 0, w, h])
+        .style('overflow', 'visible');
+
+      var defs = svg.append('defs');
+      data.forEach(function (d, i) {
+        var ratio = d[1] / maxVal;
+        var gradId = 'bar-grad-' + i;
+        var grad = defs.append('linearGradient')
+          .attr('id', gradId)
+          .attr('x1', '0%').attr('y1', '0%')
+          .attr('x2', '100%').attr('y2', '0%');
+        grad.append('stop').attr('offset', '0%')
+          .attr('stop-color', ratio > 0.7 ? '#4de2ff' : ratio > 0.4 ? '#5b8cff' : '#7b61ff')
+          .attr('stop-opacity', 0.85);
+        grad.append('stop').attr('offset', '100%')
+          .attr('stop-color', ratio > 0.7 ? '#5b8cff' : ratio > 0.4 ? '#7b61ff' : '#a29bfe')
+          .attr('stop-opacity', 0.55);
+      });
+
+      var y = d3.scaleBand()
+        .domain(d3.range(data.length))
+        .range([margin.top, h - margin.bottom])
+        .padding(0.15);
+
+      var x = d3.scaleLinear()
+        .domain([0, maxVal])
+        .range([margin.left, w - margin.right]);
+
+      svg.append('g')
+        .selectAll('rect.bg')
+        .data(d3.range(data.length))
+        .join('rect')
+        .attr('class', 'bg')
+        .attr('x', margin.left)
+        .attr('y', function (d) { return y(d); })
+        .attr('height', y.bandwidth())
+        .attr('width', plotW)
+        .attr('fill', 'rgba(255,255,255,0.02)')
+        .attr('rx', 4);
+
+      svg.append('g')
+        .selectAll('rect.bar')
+        .data(data)
+        .join('rect')
+        .attr('class', 'bar')
+        .attr('y', function (d, i) { return y(i); })
+        .attr('x', margin.left)
+        .attr('height', y.bandwidth())
+        .attr('width', function (d) { return Math.max(4, x(d[1]) - margin.left); })
+        .attr('fill', function (d, i) { return 'url(#bar-grad-' + i + ')'; })
+        .attr('rx', function (d) { return (y.bandwidth()) / 2; })
+        .attr('ry', function (d) { return (y.bandwidth()) / 2; });
+
+      // name labels
+      svg.append('g')
+        .selectAll('text.name')
+        .data(data)
+        .join('text')
+        .attr('class', 'name')
+        .attr('x', margin.left - 8)
+        .attr('y', function (d, i) { return y(i) + y.bandwidth() / 2; })
+        .attr('fill', '#dbe7ff')
+        .attr('font-size', 13)
+        .attr('font-weight', 600)
+        .attr('text-anchor', 'end')
+        .attr('dominant-baseline', 'middle')
+        .attr('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif')
+        .text(function (d) { return d[0]; });
+
+      // value labels at bar end
+      svg.append('g')
+        .selectAll('text.val')
+        .data(data)
+        .join('text')
+        .attr('class', 'val')
+        .attr('x', function (d) { return Math.max(x(d[1]) + 8, margin.left + 8); })
+        .attr('y', function (d, i) { return y(i) + y.bandwidth() / 2; })
+        .attr('fill', '#4de2ff')
+        .attr('font-size', 13)
+        .attr('font-weight', 700)
+        .attr('dominant-baseline', 'middle')
+        .attr('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif')
+        .text(function (d) { return d[1]; });
+
+      // grid lines
+      var ticks = x.ticks(5);
+      svg.append('g')
+        .selectAll('line.grid')
+        .data(ticks)
+        .join('line')
+        .attr('class', 'grid')
+        .attr('x1', function (d) { return x(d); })
+        .attr('x2', function (d) { return x(d); })
+        .attr('y1', margin.top)
+        .attr('y2', h - margin.bottom)
+        .attr('stroke', 'rgba(90, 150, 255, 0.1)')
+        .attr('stroke-width', 1)
+        .attr('stroke-dasharray', '4,4');
+    })();
 
     (function renderTopicForest() {
       const forest = document.getElementById('topic-forest');
