@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>湖南露营学院 群聊动态报告</title>
   <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.3/src/wordcloud2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js"></script>
   <style>
     :root {
       --bg: #050816;
@@ -333,6 +334,102 @@
       font-size: 12px;
     }
 
+    .relationship-card {
+      padding: 18px;
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(77, 226, 255, 0.06), transparent 44%),
+        linear-gradient(180deg, rgba(13, 22, 46, 0.92), rgba(8, 14, 30, 0.96));
+      border: 1px solid rgba(157, 181, 230, 0.22);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      overflow: hidden;
+    }
+
+    .relationship-canvas {
+      display: block;
+      width: 100%;
+      min-height: 560px;
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at center, rgba(77, 226, 255, 0.06), transparent 36%),
+        rgba(255, 255, 255, 0.01);
+      border: 1px solid rgba(157, 181, 230, 0.16);
+      cursor: grab;
+    }
+
+    .relationship-canvas:active {
+      cursor: grabbing;
+    }
+
+    .relationship-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 14px 4px 4px;
+      justify-content: center;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(10, 18, 38, 0.7);
+      border: 1px solid rgba(90, 150, 255, 0.15);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .legend-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .rel-tooltip {
+      position: absolute;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(10, 18, 42, 0.94);
+      border: 1px solid rgba(90, 150, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      color: #eef5ff;
+      font-size: 13px;
+      line-height: 1.6;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 100;
+      max-width: 240px;
+      backdrop-filter: blur(8px);
+    }
+
+    .rel-tooltip strong {
+      color: #ffffff;
+    }
+
+    .stars-chart-container {
+      margin-top: 22px;
+      padding: 18px;
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(59, 240, 195, 0.06), transparent 44%),
+        linear-gradient(180deg, rgba(13, 22, 46, 0.88), rgba(8, 14, 30, 0.94));
+      border: 1px solid rgba(90, 150, 255, 0.16);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      overflow: hidden;
+    }
+
+    .stars-chart-container svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+    }
+
     .forest-section h2::before {
       display: none;
     }
@@ -482,8 +579,8 @@
   <div class="container">
     <div class="hero">
       <div class="eyebrow">群聊情报报告</div>
-      <h1>湖南露营学院 群聊周报（2026-07-22 至 2026-07-29）</h1>
-      <div class="subtitle">从川西高原的莲宝叶则经幡到浏阳野奢林的炭火烤鸡，从台风红霞的狂风暴雨到甘南自驾的绝美风景——这一周湖南露营学院的群聊就是一部"身体和灵魂总要有一个在路上"的连续剧。</div>
+      <h1>湖南露营学院 群聊周报（2026-07-22 ~ 2026-07-28）</h1>
+      <div class="subtitle">本周3310条消息，80位群友在线切磋，从川西自驾到长沙营商环境，从股市逃顶到养老焦虑，话题横跨山海——而群友@一个小嘉 以一己之力贡献了近十分之一的发言量。</div>
     </div>
 
     <div class="section">
@@ -492,34 +589,32 @@
         
 <div class="summary-card">
   <span class="summary-label">总发言数</span>
-  <span class="summary-value">3,310</span>
+  <span class="summary-value">3310</span>
 </div>
 <div class="summary-card">
-  <span class="summary-label">活跃人数</span>
+  <span class="summary-label">活跃参与人数</span>
   <span class="summary-value">80</span>
 </div>
 <div class="summary-card">
-  <span class="summary-label">日期范围</span>
-  <span class="summary-value">7天</span>
-</div>
-<div class="summary-card">
-  <span class="summary-label">日均消息</span>
-  <span class="summary-value">473</span>
-</div>
-<div class="trend-card">
-  <div class="trend-head">
-    <span class="trend-title">每日消息趋势</span>
-  </div>
-  <canvas id="trend" class="trend-canvas"></canvas>
-  <div class="trend-note">本周峰值出现在7月23日（477条），台风红霞过境前后群聊热度高涨</div>
+  <span class="summary-label">图片/视频数</span>
+  <span class="summary-value">380</span>
 </div>
 
         
+<div class="trend-card">
+  <div class="trend-head">
+    <span class="trend-title">📈 每日消息量</span>
+    <span>峰值 727 条 · 均值 472 条</span>
+  </div>
+  <canvas id="trend" class="trend-canvas" width="860" height="260"></canvas>
+  <div class="trend-note">七月底热度不减，7/23 和 7/28 两座高峰——周一和周三群友最活跃，周末反而回落</div>
+</div>
+
       </div>
       
 <div class="summary-line">
-  <span class="summary-line-label">高频情绪：</span>
-  🤩 羡慕（嘉哥自驾日常）+ 😂 调侃（掌柜社死故事）+ 😱 吃瓜（飞机事件/台风现场）+ 🤔 经济焦虑（社保/退休话题）
+  <span class="summary-line-label">🧠 高频情绪</span>
+  调侃互损 + 生活感慨 + 旅游分享焦虑 —— 表面在聊车聊露营，实际群友集体在琢磨"怎么让自己过得更好一点"
 </div>
 
     </div>
@@ -529,192 +624,201 @@
       <ul>
         
 <li>
-  <div class="topic-title">🚗 嘉哥甘南自驾远程直播</div>
-  <div class="topic-step">
-    <span class="topic-act">🔹 第一幕：启程与洛克之路</span>
-    <span class="topic-step">一个小嘉从长沙出发，一路西北向甘南进发，在洛克之路、扎尕那等地分享实时路况和风景照。群友纷纷表示"你生我梦"。</span>
-    <span class="topic-act">🔹 第二幕：莲宝叶则与高反哲学</span>
-    <span class="topic-step">嘉哥在海拔4520米的莲宝叶则"坐着抽烟看别人吸氧"，引发群友对高原反应的集体讨论。小西米紧随其后准备出发，疯狂记笔记求攻略。</span>
-    <span class="topic-act">🔹 第三幕：草原牧民的财富震撼</span>
-    <span class="topic-step">嘉哥在若尔盖与藏民聊天：800头牦牛+500只羊+50匹马。群友集体破防："百万身价还这么低调"。</span>
-    <span class="topic-act">🔹 第四幕：入赘新疆的玩笑</span>
-    <span class="topic-step">嘉哥戏称朋友要介绍"热巴"给他，在群里掀起"软饭硬吃"的调侃热潮，娟姐、苏苏等集体起哄。</span>
-  </div>
+  <span class="topic-title">🚐 @一个小嘉 的甘南川西实时转播</span>
+  <div class="topic-act">第一幕：从阿坝到莲宝叶则</div>
+  <span class="topic-step">· 一个小嘉从四川阿坝开始直播行程，精神康复科—芥末一路接应问候"哥我到四川阿坝了"</span>
+  <span class="topic-step">· 莲宝叶则每日限流300台车，一个小嘉踩点后提醒群友早到</span>
+  <span class="topic-step">· 小西米表示行李装不下，一个小嘉指导"露营就是冬天的装备哈"</span>
+  <div class="topic-act">第二幕：青海湖方向的抉择</div>
+  <span class="topic-step">· 穿过莲宝叶则向青海湖推进，翻过一座山就是青海</span>
+  <span class="topic-step">· 小杰安利青海贵德黄河快艇，摄水涵沙说"15天青海都转一圈回来了"</span>
+  <span class="topic-step">· 99元的山景房还送两把当归，水梨开花接嘴"那你送给我吧"——一个小嘉真找老板娘又买了</span>
+  <div class="topic-act">第三幕：群友围观提问</div>
+  <span class="topic-step">· 汪宛辰问高反和路线方案，盘算8月去</span>
+  <span class="topic-step">· 娟姐姐不停追问细节，被@十余次，一个小嘉逐一回复</span>
+  <span class="topic-step">· 天下云调侃滔哥"自驾游的天选之子"</span>
   <div class="highlight-quote">
-    <span class="highlight-text">"我儿子主打一个要门票的都不去"</span>
-    <span class="highlight-author">— 一个小嘉</span>
+    <span class="highlight-text">"莲宝叶则4520，我坐在那抽烟看他们吸氧"</span>
+    <span class="highlight-author">—— 一个小嘉</span>
   </div>
-  <div class="highlight-quote">
-    <span class="highlight-text">"海拔4500也要抽根蓉蓉"</span>
-    <span class="highlight-author">— 一个小嘉</span>
-  </div>
-  <div class="topic-participants">
-    <span class="ai-note">🔮 AI锐评：嘉哥这一周活成了全群的"诗和远方"人形代理——人在甘南开直播，群友在长沙替他精神自驾。从洛克之路到莲宝叶则，每张照片都是一针"你为什么不出去玩"的精准扎心。当他谈起藏民800头牦牛时，群里沉默的那几秒，是所有人重新审视自己工位生活的庄严时刻。</span>
-    <strong>主要参与者：</strong>一个小嘉、小西米、逸品阁名表名包鞋服银元车-梁掌柜、天下云、汪宛辰
-  </div>
+  <span class="ai-note">🤖 AI 锐评：群里有人肉身替你走了一遍你收藏了三年的路线。他发的每张图，都是你"明年一定去"的未读账单。</span>
+  <span class="topic-participants">主要参与者：一个小嘉、小西米、天下云、娟姐姐、汪宛辰、小杰、摄水涵沙、水梨开花</span>
 </li>
+
 <li>
-  <div class="topic-title">🍗 野奢林纸箱烤鸡教学</div>
-  <div class="topic-step">
-    <span class="topic-act">🔹 第一幕：芥末哥配方流出</span>
-    <span class="topic-step">樂樂。向精神康复科—芥末求烤鸡配方，芥末大方分享。梁掌柜插嘴"土鸡只需要盐+锡纸"，被芥末怼"土鸡烤个毛，两小时咬不动"。</span>
-    <span class="topic-act">🔹 第二幕：董事长接棒主烤</span>
-    <span class="topic-step">人类容貌质检员、大林（董事长）自称"得到纸箱烤鸡创始人真传"，周末在野奢林设烤鸡局。Aelita积极组织群友周日前去品鉴。</span>
-    <span class="topic-act">🔹 第三幕：烤鸡哲学升华</span>
-    <span class="topic-step">从鸡的品种到纸箱尺寸到锡纸厚度，群友展开了一场堪比米其林评审的技术流讨论，最终结论：好鸡只需盐。</span>
-  </div>
+  <span class="topic-title">📉 股市、大盘与投资焦虑</span>
+  <div class="topic-act">第一幕：休想割我韭菜</div>
+  <span class="topic-step">· 天下云率先表态"取出来放家里都不炒股""休想在这里割我"，深二附和"确实"</span>
+  <span class="topic-step">· 深二判断大盘能到3500附近，建议重仓买指数最稳当</span>
+  <span class="topic-step">· 天下云调侃"社会主义的股票跟全世界有啥关系"，深二补充"能看到的信息都是特定时间点别人想让你看到的"</span>
+  <div class="topic-act">第二幕：不想被关注只想放假</div>
+  <span class="topic-step">· 话题从股市滑向年假：深二感叹"我也想休长假"，天下云说领导昨天下班说下周见</span>
+  <span class="topic-step">· 深二指出8月很多单位集中休年假，"最办不动事情的月份要来了"</span>
   <div class="highlight-quote">
-    <span class="highlight-text">"什么时候我也能吃一次烤鸡呢？"</span>
-    <span class="highlight-author">— Aelita</span>
+    <span class="highlight-text">"不炒股每天轻轻松松，炒股……"</span>
+    <span class="highlight-author">—— 深二（分享链接标题）</span>
   </div>
-  <div class="topic-participants">
-    <span class="ai-note">🔮 AI锐评：一只纸箱烤鸡串联起了整个群的露营社交网络——芥末出配方、董事长掌烤、Aelita组局、樂樂。负责焦虑箱子尺寸。这群人聊吃的认真程度，远超他们聊工作的投入度。</span>
-    <strong>主要参与者：</strong>精神康复科—芥末、人类容貌质检员、大林、Aelita、樂樂。、肖标
-  </div>
+  <span class="ai-note">🤖 AI 锐评：嘴上说不炒了，手指还在翻K线——群里最矛盾的行为艺术就是一边骂大A一边偷偷算3500能不能到。</span>
+  <span class="topic-participants">主要参与者：天下云、深二、空灵净化科～咪寶</span>
 </li>
+
 <li>
-  <div class="topic-title">🌪️ 台风"红霞"过境直播</div>
-  <div class="topic-step">
-    <span class="topic-act">🔹 第一幕：暴风雨前的宁静</span>
-    <span class="topic-step">7月24日起群内开始讨论台风"红霞"登陆路径，摄水涵沙预报"长株潭大烧"，长沙提前进入应急状态。</span>
-    <span class="topic-act">🔹 第二幕：现场直击</span>
-    <span class="topic-step">7月26日台风逼近，豆豆คิดถึง买好零食在家等暴雨；包子家"一阵狂风水电全停"；德思勤对面发生严重车祸引起群友热议。</span>
-    <span class="topic-act">🔹 第三幕：董事长紧急撤离</span>
-    <span class="topic-step">人类容貌质检员、大林在浏阳发通知：政府要求所有涉水经营单位下午5点前全面停业撤离，群友互报平安。</span>
-  </div>
+  <span class="topic-title">🏙️ 长沙创业环境 vs 杭州：一场吐槽大会</span>
+  <div class="topic-act">第一幕：长沙的槽点</div>
+  <span class="topic-step">· 长沙航模-摄水涵沙开火"强省会是最恶心的政策，搞得地市州穷的一批"</span>
+  <span class="topic-step">· 梁掌柜接"近几年长沙老出事，人人自危保乌纱帽，哪有精力搞经济"</span>
+  <span class="topic-step">· 梁掌柜自爆被偷经历后跟有关部门打交道，"这营商环境，长沙该"</span>
+  <div class="topic-act">第二幕：创业的九死一生</div>
+  <span class="topic-step">· 摄水涵沙说"长沙创业试错的机会都没有""万达那里基本上就是长沙缅北"</span>
+  <span class="topic-step">· 梁掌柜补刀"SB砖家才鼓励大学生创业、全民创业"</span>
+  <span class="topic-step">· 两人达成共识：创业本来九死一生，但长沙的文旅定位没有核心竞争力</span>
+  <div class="topic-act">第三幕：杭州广告时间</div>
+  <span class="topic-step">· 梁掌柜话锋一转"杭州的营商环境才是我向往的"</span>
+  <span class="topic-step">· 摄水涵沙补充"长沙的文旅定位没有核心竞争力"</span>
+  <span class="topic-step">· 话题以集体感慨收场，转向吐槽长沙的士广告"背起双肩包来长沙创业，输的你短裤都没有"</span>
   <div class="highlight-quote">
-    <span class="highlight-text">"买了一大袋零食，在家等暴雨"</span>
-    <span class="highlight-author">— 豆豆คิดถึง</span>
+    <span class="highlight-text">"我接到的价格好一点的单子不是做贷款的就是商k的，其余都是一口价"</span>
+    <span class="highlight-author">—— 长沙航模-摄水涵沙</span>
   </div>
-  <div class="topic-participants">
-    <span class="ai-note">🔮 AI锐评：台风来临前，群聊自动切换成"防灾应急指挥部"模式——有人发预警、有人报路况、有人趁机囤零食。当长沙人面对极端天气时的统一反应不是害怕，而是"我看看能不能拍个好看的晚霞"。</span>
-    <strong>主要参与者：</strong>长沙航模-摄水涵沙、人类容貌质检员、大林、天下云、包子、豆豆คิดถึง、🚬᭄謀財ღ᭄ꦿ꯭渡凡尘
-  </div>
+  <span class="ai-note">🤖 AI 锐评：当两个在长沙摸爬滚打的人开始认真夸杭州——你就知道这座城市把他们伤得有多深。</span>
+  <span class="topic-participants">主要参与者：长沙航模-摄水涵沙、逸品阁名表名包鞋服银元车-梁掌柜</span>
 </li>
+
 <li>
-  <div class="topic-title">💰 社保退休焦虑大讨论</div>
-  <div class="topic-step">
-    <span class="topic-act">🔹 第一幕：豆豆的啃老宣言</span>
-    <span class="topic-step">豆豆คิดถึง晒出老妈转账1万，引发"退休工资比上班工资高"的扎心话题。随后群友开始各自查社保缴纳年限。</span>
-    <span class="topic-act">🔹 第二幕：延迟退休的数学题</span>
-    <span class="topic-step">天下云现场算账："按最低年限算，个缴角度5年回本，加单位统筹15年左右。"Aelita回忆"睡个午觉起来天塌了——延迟三年退休"。</span>
-    <span class="topic-act">🔹 第三幕：养老院恐惧症</span>
-    <span class="topic-step">梁掌柜抛出养老院真实案例，群友从"要有后代"到"能不能自我了结"展开了从焦虑到虚无的完整心理历程。</span>
-  </div>
+  <span class="topic-title">💸 税务风暴与社保实缴：谁也别想跑</span>
+  <div class="topic-act">第一幕：查税进行时</div>
+  <span class="topic-step">· 苏苏爆料"我一在深圳做女装的朋友，税务直接把收银电脑抱走了，要补税1千多万"</span>
+  <span class="topic-step">· 包子问"都谁贡献的啊"，一个小嘉接"应收尽收，应交尽交"</span>
+  <span class="topic-step">· 梁掌柜直言"离岸信托资产都要交税了，谁都跑不掉"——"谁叫你们不买房，土地财政玩不下去了"</span>
+  <div class="topic-act">第二幕：谁的流水在抖</div>
+  <span class="topic-step">· 包子调侃梁掌柜"你这行业的流水不小，小心了"</span>
+  <span class="topic-step">· 天下云表示"我们社保都被实缴了""目前是抓大放小阶段"</span>
+  <span class="topic-step">· 咪寶总结"现在盯得紧查得严咯，不要抱有侥幸心理"</span>
+  <div class="topic-act">第三幕：从查税滑向养老焦虑</div>
+  <span class="topic-step">· 梁掌柜开始回忆"17岁出来社保是什么玩意都不知道"，缴了十几年社保但"想想都快50了，唉"</span>
+  <span class="topic-step">· 引出养老话题：梁掌柜认为"没有后代（后代没有能力），那有受不完的罪"</span>
+  <span class="topic-step">· 以"日本曾经有一个政策支持老人去死""疫情已经筛选了好多老人了"的暗黑收束</span>
   <div class="highlight-quote">
-    <span class="highlight-text">"退休了可以去酒吧点不少男模呢"</span>
-    <span class="highlight-author">— 天下云</span>
+    <span class="highlight-text">"离岸信托资产都要交税了，谁都跑不掉"</span>
+    <span class="highlight-author">—— 逸品阁名表名包鞋服银元车-梁掌柜</span>
   </div>
-  <div class="topic-participants">
-    <span class="ai-note">🔮 AI锐评：这个群的社保讨论轨迹堪称经典——从豆豆晒啃老（炫耀）→ 查社保年限（焦虑）→ 算回本周期（数学）→ 讨论养老院（恐惧）→ "不如自我了结"（虚无）→ 梁掌柜一句"想想我都快50了"（暴击）。一套流程走完，全员更想辞职了。</span>
-    <strong>主要参与者：</strong>豆豆คิดถึง、天下云、逸品阁名表名包鞋服银元车-梁掌柜、Aelita、空灵净化科～咪寶、水梨开花、小嘉
-  </div>
+  <span class="ai-note">🤖 AI 锐评：一条税务新闻硬是被群友聊成了从查税→社保→养老→生存意义的四幕哲学剧，梁掌柜的焦虑浓度全场最高。</span>
+  <span class="topic-participants">主要参与者：苏苏、包子、逸品阁名表名包鞋服银元车-梁掌柜、天下云、空灵净化科～咪寶</span>
 </li>
+
 <li>
-  <div class="topic-title">🎣 钓鱼佬的空军忏悔录</div>
-  <div class="topic-step">
-    <span class="topic-act">🔹 第一幕：强哥的连败</span>
-    <span class="topic-step">懒人浅露系主任-强哥在群里哭诉空军两天，用了铁板、VIB、米诺、铅笔各种假饵"硬是没有口"。娟姐以国家级钓鱼人身份登场："用泥鳅！"</span>
-    <span class="topic-act">🔹 第二幕：法规与实战的博弈</span>
-    <span class="topic-step">强哥查了法规发现"活泥鳅违法"，娟姐回应"我们经常违法"。两人之间关于钓鱼伦理的对话让全群笑翻。</span>
-    <span class="topic-act">🔹 第三幕：转战码头</span>
-    <span class="topic-step">强哥最终决定"明天去码头建立一下信心"——结果第二天继续"散棚，又是空军的一天"。群友纷纷表示：这很钓鱼佬。</span>
-  </div>
+  <span class="topic-title">🎣 强哥的神仙日子：钓鱼、露营与风骚穿搭</span>
+  <div class="topic-act">第一幕：码头钓鱼惨案</div>
+  <span class="topic-step">· 强哥日常钓鱼："玛德，码头未必也钓不到鱼？"</span>
+  <span class="topic-step">· 豆豆幽幽回应"强哥你每天过神仙日子，来气我们牛马"</span>
+  <div class="topic-act">第二幕：穿搭与气温</div>
+  <span class="topic-step">· 强哥晒出红色着装："我已经穿成这样了，风好大"</span>
+  <span class="topic-step">· 豆豆笑评"啊哟，大红色，骚气十足"</span>
+  <span class="topic-step">· 苏苏补刀"每天自己早晚锻炼半小时"，宣告走在健康路上</span>
+  <div class="topic-act">第三幕：野外收获</div>
+  <span class="topic-step">· 强哥展示"收获两只fallow deer""有山地车"</span>
+  <span class="topic-step">· 群友围观强哥的户外装备和露营生活</span>
+  <span class="topic-step">· 娟姐姐表示"我现在的开的露营车开了十三年了，真的没啥问题"</span>
   <div class="highlight-quote">
-    <span class="highlight-text">"用泥鳅打窝，然后挂泥鳅，泥鳅要上下刮，不要刮尾巴，要刮头，但是又不能刮死"</span>
-    <span class="highlight-author">— 娟姐姐（国家级钓鱼人）</span>
+    <span class="highlight-text">"强哥你每天过神仙日子，来气我们牛马"</span>
+    <span class="highlight-author">—— 豆豆คิดถึง</span>
   </div>
-  <div class="topic-participants">
-    <span class="ai-note">🔮 AI锐评：强哥和娟姐的钓鱼对话是一出完美的"理论与实践"小品——强哥带着路亚装备和环保意识来到水边，娟姐带着泥鳅和违法记录满载而归。最后强哥的"八月见"翻译过来就是"我还会再空的"。</span>
-    <strong>主要参与者：</strong>懒人浅露系主任-强哥、娟姐姐、精神康复科—芥末、´简单就好~
-  </div>
+  <span class="ai-note">🤖 AI 锐评：强哥的日常就是把群友对自由生活的向往，一条一条晒成他们永远够不到的KPI。而且配色越来越大胆了。</span>
+  <span class="topic-participants">主要参与者：懒人浅露系主任-强哥、豆豆คิดถึง、苏苏、娟姐姐</span>
 </li>
+
 <li>
-  <div class="topic-title">🎬 抖音电商的起落人生</div>
-  <div class="topic-step">
-    <span class="topic-act">🔹 第一幕：包子亏了一年的故事</span>
-    <span class="topic-step">包子自曝做抖音百货亏了一年，直播间曾到过一万人，但因做AB货被平台重罚。小西米共鸣"抖音把我账户冻结了"。</span>
-    <span class="topic-act">🔹 第二幕：小西米的抖店回春</span>
-    <span class="topic-step">小西米兴奋宣布以前的抖店现在一天能卖七八百双鞋，但随后又纠结是否要放弃稳定合作去创业。群友从选品聊到投流再聊到售后。</span>
-    <span class="topic-act">🔹 第三幕：普通人直播间的崛起</span>
-    <span class="topic-step">群友分析一个女装账号如何在10天内从3000粉涨到10万粉——"垂直+精准投流+内容+品不错"，水梨开花表示"抖音刷到去PDD搜同款"引发全场共鸣。</span>
-  </div>
+  <span class="topic-title">📖 梁掌柜故事会：从腾讯禁言到美女拦车</span>
+  <div class="topic-act">第一幕：腾讯禁言事件</div>
+  <span class="topic-step">· 梁掌柜说自己"在评论区回复了一下"被禁言</span>
+  <span class="topic-step">· 深二笑他"求得好"，苏苏提议"掌柜出个故事会吧"</span>
+  <span class="topic-step">· 芥末当场拟了章节名"第一章节：我与大疆的24次生死别离，第二章节：苟富贵，勿相骗"</span>
+  <div class="topic-act">第二幕：炸臭豆腐的哲学难题</div>
+  <span class="topic-step">· 隔壁炸臭豆腐把垃圾桶放店门口，梁掌柜反馈未果，"人又蛮好的，大家有没有什么办法"</span>
+  <span class="topic-step">· 壹二支招"天天叫人在你门口水枪洗几次"——梁掌柜说对方"油盐不进"</span>
+  <div class="topic-act">第三幕：若尔盖草原奇遇</div>
+  <span class="topic-step">· 梁掌柜在若尔盖高反"宾馆的氧气罐被我买光了"</span>
+  <span class="topic-step">· 他把车开牧场里，"幸亏跑得快，后面那台车被牧民拦下来了"</span>
+  <span class="topic-step">· 想体验糌粑"结果摸了牛屎直接上手，又不好意思拒绝"</span>
+  <span class="topic-step">· 还有美女在草原上拦车，看到车上有女主人就走了——梁掌柜遗憾.jpg</span>
   <div class="highlight-quote">
-    <span class="highlight-text">"不花钱没这么厉害"</span>
-    <span class="highlight-author">— 娟姐姐</span>
+    <span class="highlight-text">"第一章节：我与大疆的24次生死别离。第二章节：苟富贵，勿相骗。"</span>
+    <span class="highlight-author">—— 精神康复科—芥末</span>
   </div>
-  <div class="topic-participants">
-    <span class="ai-note">🔮 AI锐评：这个群的电商故事就是一部浓缩的抖音编年史——包子花一年学费体验了AB货的毁灭性打击，小西米在退与不退之间反复横跳，而水梨开花用一句话总结了这个时代最残酷的真相："去PDD搜同款"。</span>
-    <strong>主要参与者：</strong>包子、小西米、水梨开花、天下云、梁仙
-  </div>
+  <span class="ai-note">🤖 AI 锐评：梁掌柜是这个群的活体人间观察器，他的故事有一种"你们还在计划，我已经翻车回来了"的天然优势。</span>
+  <span class="topic-participants">主要参与者：逸品阁名表名包鞋服银元车-梁掌柜、精神康复科—芥末、深二、苏苏、壹二</span>
 </li>
+
 <li>
-  <div class="topic-title">😈 娟姐的不健康群悬案</div>
-  <div class="topic-step">
-    <span class="topic-act">🔹 起哄现场</span>
-    <span class="topic-step">娟姐自曝有个"一天到晚发黑丝"的不健康群，瞬间引爆群内男性热情——梁掌柜"可以拉我么，偷偷的"、芥末"如果是不健康的群麻烦拉我"、陈卓"如果是不健康的群麻烦拉我+1"。</span>
-    <span class="topic-act">🔹 社群关系学</span>
-    <span class="topic-step">话题随即转向"共同群聊"的比拼——嘉哥和滔哥有8个共同群，樂樂。和领导聊天记录追溯到2018年不敢删。娟姐终极暴击："同群有啥了不起，有本事同一张床"。</span>
-  </div>
+  <span class="topic-title">🛻 买什么车：从露营车到特斯拉的消费论战</span>
+  <div class="topic-act">第一幕：老车质量好 vs 国产起来了</div>
+  <span class="topic-step">· 娟姐姐说"以前买的车质量好很多""露营车开了十三年没啥问题"</span>
+  <span class="topic-step">· 包子分析"以前的合资车质量好，现在的国产车质量赶上来了"</span>
+  <span class="topic-step">· 苏苏证实"同品牌同型号的车，原来买的质量完全不一样"</span>
+  <div class="topic-act">第二幕：特斯拉话题进场</div>
+  <span class="topic-step">· Sun力挺特斯拉："底盘、电控、组装技术、钢材强度、智能，特斯拉都非常能打"</span>
+  <span class="topic-step">· 梁掌柜对小伙伴说"你有Tsl，出去成本那么低，如果是我，早出去浪了"</span>
+  <span class="topic-step">· 梁掌柜推荐双擎卡罗拉给同学，同学只要燃油车——"她没什么钱，又是农村主妇"</span>
+  <div class="topic-act">第三幕：用车成本现实</div>
+  <span class="topic-step">· 梁掌柜算账：年检+保养+换4个轮胎1万多，"不花钱，老板会变着法让你花钱"</span>
+  <span class="topic-step">· 梁掌柜说大众很省油"1.8T途观最低跑过3毛多"</span>
   <div class="highlight-quote">
-    <span class="highlight-text">"同群有啥了不起，有本事同一张床"</span>
-    <span class="highlight-author">— 娟姐姐</span>
+    <span class="highlight-text">"电车就买特斯拉"</span>
+    <span class="highlight-author">—— Sun</span>
   </div>
-  <div class="topic-participants">
-    <span class="ai-note">🔮 AI锐评：娟姐仅用一条"不健康群"的消息就完成了全群男性的服从性测试——梁掌柜秒回、芥末紧随、陈卓+1，全程用时不到30秒。最后那句"同床论"更是直接把群聊从微信聊天拉到了真心话大冒险现场。</span>
-    <strong>主要参与者：</strong>娟姐姐、逸品阁名表名包鞋服银元车-梁掌柜、精神康复科—芥末、天下云、蘇蘇
-  </div>
+  <span class="ai-note">🤖 AI 锐评：一个露营群从老车质量聊到国产崛起再聊到特斯拉，最后发现——大家只是都想换新车了。</span>
+  <span class="topic-participants">主要参与者：娟姐姐、包子、苏苏、Sun、逸品阁名表名包鞋服银元车-梁掌柜</span>
 </li>
+
 <li>
-  <div class="topic-title">🌇 长沙晚霞摄影大赛</div>
-  <div class="topic-step">
-    <span class="topic-act">🔹 日常美学</span>
-    <span class="topic-step">这一周长沙的晚霞堪称"年度级"，从世纪火烧云到台风过后的通透天空，长沙航模-摄水涵沙、逸品阁名表名包鞋服银元车-梁掌柜、陈卓等摄影爱好者轮番上阵，无人机、手机、相机齐上阵。</span>
-    <span class="topic-act">🔹 技术流</span>
-    <span class="topic-step">梁掌柜发现剪映"一键高清"功能导致画面频闪的bug，摄水涵沙分享延时摄影经验，群友从"好看"聊到"HDR"再到"拍流星雨去哪"。</span>
-  </div>
+  <span class="topic-title">🌈 浏阳万石坞上线 & 周末去哪儿</span>
+  <div class="topic-act">第一幕：新营地上线</div>
+  <span class="topic-step">· 芥末喊"浏阳万石坞正式上线了"</span>
+  <span class="topic-step">· 姣姣老师表示"我们就在这，今天又来了"</span>
+  <span class="topic-step">· 梁掌柜接"昨天朋友才去那里""长沙有这样的地方我早私人圈起来收费了"</span>
+  <div class="topic-act">第二幕：天气与出行风险</div>
+  <span class="topic-step">· 大林预警"在浏阳玩水的朋友赶紧撤离"</span>
+  <span class="topic-step">· 天下云查预报"我刚才看了浏阳这几天没得大雨"</span>
+  <span class="topic-step">· 群友开始盘算周末去哪儿</span>
   <div class="highlight-quote">
-    <span class="highlight-text">"今天的晚霞好漂亮，没空飞无人机"</span>
-    <span class="highlight-author">— 逸品阁名表名包鞋服银元车-梁掌柜</span>
+    <span class="highlight-text">"长沙有这样的地方，我早私人圈起来收费了"</span>
+    <span class="highlight-author">—— 逸品阁名表名包鞋服银元车-梁掌柜</span>
   </div>
-  <div class="topic-participants">
-    <span class="ai-note">🔮 AI锐评：这个群对晚霞的热情堪比气象台——摄水涵沙提前三天预报"长株潭大烧"，梁掌柜宁可不吃饭也要飞无人机，就连懒人浅露系主任-强哥在新西兰都不忘参与讨论。长沙的晚霞在这一周成了全群的最高共识。</span>
-    <strong>主要参与者：</strong>长沙航模-摄水涵沙、逸品阁名表名包鞋服银元车-梁掌柜、陈卓、天下云、刘小溪
-  </div>
+  <span class="ai-note">🤖 AI 锐评：一个营地上线的消息，炸出了群里的"伪装露营爱好者"——装备齐全但上次进山是三个月前。</span>
+  <span class="topic-participants">主要参与者：精神康复科—芥末、姣姣老师、梁掌柜、大林、天下云</span>
 </li>
+
 <li>
-  <div class="topic-title">🤸 水梨的减肥呼啦圈之路</div>
-  <div class="topic-step">
-    <span class="topic-act">🔹 立flag</span>
-    <span class="topic-step">水梨开花四天没喝酒但也没瘦，每天吃减脂餐但"每时每刻脑壳里都想吃东西"。最终没忍住喝了一瓶啤酒，减肥计划宣告阶段性受挫。</span>
-    <span class="topic-act">🔹 呼啦圈新大陆</span>
-    <span class="topic-step">水梨在史家大小姐直播间发现摇呼啦圈可以瘦腰，史家大小姐现场教学：根据体重选呼啦圈、逐日增加时长、从半小时起步。水梨"马上激情下单"。</span>
-  </div>
+  <span class="topic-title">📸 八月流星雨 & 拍摄装备党集结</span>
+  <div class="topic-act">第一幕：流星雨之约</div>
+  <span class="topic-step">· 摄水涵沙发起"八月，看流星雨去吧"，后续@刘小溪去拍流星雨</span>
+  <span class="topic-step">· 娟姐姐开玩笑"不是飞机就是外星人咯，反正不是流星"</span>
+  <div class="topic-act">第二幕：拍摄技术与翻车现场</div>
+  <span class="topic-step">· 梁掌柜说"拍定向延时摄影，镜头晃动""屏闪，可能在剪映里面调了颜色"</span>
+  <span class="topic-step">· 讨论AI对影像行业的影响：摄水涵沙认为"Ai只需要剧本+超算力，最终还是内容为王"</span>
+  <span class="topic-step">· 梁掌柜感慨"剪影里面也有AI"——两个人就AI取代摄影师的前景达成共识</span>
   <div class="highlight-quote">
-    <span class="highlight-text">"不仅吃了减脂餐 还喝了不含糖的小麦果汁"</span>
-    <span class="highlight-author">— 水梨开花</span>
+    <span class="highlight-text">"八月，看流星雨去吧"</span>
+    <span class="highlight-author">—— 长沙航模-摄水涵沙</span>
   </div>
-  <div class="topic-participants">
-    <span class="ai-note">🔮 AI锐评：水梨的减肥心路历程堪称当代女性群像——四天没喝酒先立flag、没瘦就开始焦虑、看到美食就破防、最后在直播间找到"呼啦圈"这个终极解药。而史家大小姐的销售话术从体重分级到循序渐进，完美诠释了什么叫"姐妹的生意最好做"。</span>
-    <strong>主要参与者：</strong>水梨开花、史家大小姐、空灵净化科～咪寶、苏苏
-  </div>
+  <span class="ai-note">🤖 AI 锐评：群里一半人问"什么设备拍的"，另一半人默默下单了三脚架。最后流星雨去不去不重要，装备到位先赢一半。</span>
+  <span class="topic-participants">主要参与者：长沙航模-摄水涵沙、梁掌柜、娟姐姐、刘小溪</span>
 </li>
+
 <li>
-  <div class="topic-title">💼 创业焦虑 VS 上班自由</div>
-  <div class="topic-step">
-    <span class="topic-act">🔹 深二的40岁危机</span>
-    <span class="topic-step">深二在群里坦言"上不起劲没有劲""40岁混日子没有安全感"，想创业又怕"这两年创业的都成功负债了"。引发群友关于打工vs创业的大讨论。</span>
-    <span class="topic-act">🔹 掌柜的失眠哲学</span>
-    <span class="topic-step">梁掌柜用自己十几年没上班的亲身经历反击："我好羡慕你们上班的人...老是失眠，凌晨三四点睡。"形成了一场上司班的人想出来、出来的人想进去的围城对话。</span>
-  </div>
+  <span class="topic-title">⛰️ 肖标的车被刮 & 山路驾驶安全</span>
+  <div class="topic-act">事件经过</div>
+  <span class="topic-step">· 肖标刚下山发现车子被刮了，向群友求助"要不要去交警备个案"</span>
+  <span class="topic-step">· 大林建议先报警，天下云补充"报交警说明车牌经过，重点是跑了"</span>
+  <span class="topic-step">· Aelita吐槽"弯道会车时都想占对方车道""我侄女到山下就停路边吐了"</span>
+  <span class="topic-step">· 天下云总结"还是现在的车越来越大了"</span>
+  <span class="topic-step">· 娟姐姐分享了自己逃逸被刮车主正好在钓鱼群、最后被请吃饭的离奇经历</span>
   <div class="highlight-quote">
-    <span class="highlight-text">"现在没有既要也要还要的工作"</span>
-    <span class="highlight-author">— 一个小嘉</span>
+    <span class="highlight-text">"弯道会车的时候都想占对方车道"</span>
+    <span class="highlight-author">—— Aelita</span>
   </div>
-  <div class="topic-participants">
-    <span class="ai-note">🔮 AI锐评：深二和掌柜的对话构成了一组精妙的镜像——一个在体制内想突围，一个在自由里想入笼。最终嘉哥一锤定音"没有既要也要还要的工作"，翻译过来就是：别想了，你的工作就是你的命。</span>
-    <strong>主要参与者：</strong>深二、逸品阁名表名包鞋服银元车-梁掌柜、一个小嘉、陈卓、豆豆คิดถึง
-  </div>
+  <span class="ai-note">🤖 AI 锐评：每次群里有人出车祸，就会炸出一堆"老司机"分享自己的事故故事——而且每个人的都比上一个人的更离谱。</span>
+  <span class="topic-participants">主要参与者：肖标、大林、天下云、Aelita、娟姐姐</span>
 </li>
 
       </ul>
@@ -726,193 +830,179 @@
         
 <li>
   <div class="rank-item">
-    <span class="rank-main">🥇 一个小嘉 — 323 条</span>
+    <span class="rank-main">一个小嘉</span>
+    <span>323 条消息</span>
   </div>
-  <div class="star-note">本周群聊绝对男主角，一个人撑起了川西自驾的全程图文直播。他的手机相册就是全群的精神食粮——从莲宝叶则的经幡到若尔盖的牦牛群，每天都在用"我在路上你在工位"的对比伤害群友。最离谱的是在海拔4520米抽烟看别人吸氧，把自驾游hard模式玩成了休闲模式。</div>
-  <div class="tag-row">
-    <span class="tag">自驾代言人</span>
-    <span class="tag">精神领袖</span>
-    <span class="tag">牛羊肉PTSD</span>
-  </div>
+  <span class="star-note">群里的首席户外体验官。一个人开着车从阿坝到青海湖，把莲宝叶则4520米的氧气含量踩得明明白白——他在山顶抽烟看别人吸氧的画面，堪称本周最佳硬汉镜头。发言量断层第一，但每条几乎都有信息量，不是单纯刷屏。</span>
+  <div class="tag-row"><span class="tag">自驾游KOL</span><span class="tag">实时转播</span><span class="tag">高反克星</span></div>
 </li>
 <li>
   <div class="rank-item">
-    <span class="rank-main">🥈 逸品阁名表名包鞋服银元车-梁掌柜 — 188 条</span>
+    <span class="rank-main">逸品阁名表名包鞋服银元车-梁掌柜</span>
+    <span>188 条消息</span>
   </div>
-  <div class="star-note">群内故事大王兼人间ETC（自动抬杠），每一件事都能关联到自己的传奇经历——从被腾讯禁言到自驾遇美女拦车，从宾馆氧气罐买到医院到若尔盖吃糌粑摸牛屎。他的发言密度和故事离谱程度成正比，是那种"你永远不知道他下一句话会从哪个角度刷新你认知"的男人。</div>
-  <div class="tag-row">
-    <span class="tag">故事会主讲</span>
-    <span class="tag">人间ETC</span>
-    <span class="tag">保时捷车主</span>
-  </div>
+  <span class="star-note">本周最佳叙事奖得主。从腾讯禁言聊到炸臭豆腐邻居，从若尔盖美女拦车聊到日本老人政策——每个话题到他嘴里都能长出一个番外篇。焦虑浓度偶尔超标，但故事密度永远在线。</span>
+  <div class="tag-row"><span class="tag">故事大王</span><span class="tag">人间观察</span><span class="tag">焦虑输出</span></div>
 </li>
 <li>
   <div class="rank-item">
-    <span class="rank-main">🥉 长沙航模-摄水涵沙 — 134 条</span>
+    <span class="rank-main">长沙航模-摄水涵沙</span>
+    <span>134 条消息</span>
   </div>
-  <div class="star-note">群内首席摄影+气象顾问，负责发布权威版晚霞预报和台风路径分析。拥有"提前三天告诉你长株潭要烧"的玄学级天气预判能力，同时兼任长沙文旅吐槽担当——从"强省会是最恶心的政策"到"长沙这八十年代的工资留不住人"，句句都是湖南人敢说的直白。</div>
-  <div class="tag-row">
-    <span class="tag">首席摄影师</span>
-    <span class="tag">气象播报员</span>
-    <span class="tag">官方吐槽位</span>
-  </div>
+  <span class="star-note">承包了本周"长沙为什么不行"主题的A面发言。一边吐槽强省会政策，一边在群里组织八月流星雨拍摄——属于那种嘴上骂着这座城市但在用它拍出好照片的人。</span>
+  <div class="tag-row"><span class="tag">长沙观察员</span><span class="tag">摄影顾问</span><span class="tag">吐槽役</span></div>
 </li>
 <li>
   <div class="rank-item">
-    <span class="rank-main">4. 天下云 — 130 条</span>
+    <span class="rank-main">天下云</span>
+    <span>130 条消息</span>
   </div>
-  <div class="star-note">群内气氛组兼财务顾问，从股市到社保到油价到牛肉价格无所不知。经典名场面包括但不限于：拿22年的牛肉出来吃、给梁掌柜算红军筹款、帮群友算社保回本年数。一个看起来什么都会的男人，唯一的弱点是经常被女朋友拉黑。</div>
-  <div class="tag-row">
-    <span class="tag">气氛组</span>
-    <span class="tag">黑名单常客</span>
-    <span class="tag">人形计算器</span>
-  </div>
+  <span class="star-note">群里的节奏大师，本职是在股市话题当反向指标（"取出来放家里都不炒股"），但真正的工作是在每个话题中间精准@出应该参与的人。群聊的暗线操盘手。</span>
+  <div class="tag-row"><span class="tag">群聊操盘手</span><span class="tag">股市清醒者</span><span class="tag">艾特狂魔</span></div>
 </li>
 <li>
   <div class="rank-item">
-    <span class="rank-main">5. 水梨开花 — 112 条</span>
+    <span class="rank-main">水梨开花</span>
+    <span>112 条消息</span>
   </div>
-  <div class="star-note">群内生活气息担当，本周的人设是"想减肥但管不住嘴的可爱女人"。从精酿啤酒到减脂餐再到激情下单呼啦圈，她的发言轨迹就是一部当代年轻女性的消费心理纪录片。同时还身兼"抖音刷到去PDD搜同款"的生活方式KOL。</div>
-  <div class="tag-row">
-    <span class="tag">生活委员</span>
-    <span class="tag">减肥困难户</span>
-    <span class="tag">PDD达人</span>
-  </div>
+  <span class="star-note">群里最捧场的选手之一，不管谁发了什么她都能接住话。同时也是本周减脂餐代言人——"吃了减脂餐还喝了不含糖的小麦果汁"这种自我欺骗发言让人会心一笑。</span>
+  <div class="tag-row"><span class="tag">减脂实干派</span><span class="tag">捧场王</span><span class="tag">接梗快</span></div>
 </li>
 <li>
   <div class="rank-item">
-    <span class="rank-main">6. 娟姐姐 — 108 条</span>
+    <span class="rank-main">娟姐姐</span>
+    <span>108 条消息</span>
   </div>
-  <div class="star-note">国家级钓鱼人、不健康群群主、群内荤段子许可证持有者。本周贡献了钓鱼泥鳅大法、怀化飞机目击事件、"不健康群"悬案等经典名场面。属于那种"你以为她在开玩笑其实她是认真的，你以为她认真的时候她在开玩笑"的致命女人。</div>
-  <div class="tag-row">
-    <span class="tag">钓鱼女王</span>
-    <span class="tag">尺度担当</span>
-    <span class="tag">话题发动机</span>
-  </div>
+  <span class="star-note">群里的"万能姐"，话题覆盖面从露营车修理到火焙鱼做法，跨度之大令人咋舌。擅长用一句话让话题转向——被@频率全场最高不是没有理由的。</span>
+  <div class="tag-row"><span class="tag">话题点火器</span><span class="tag">经验宝库</span><span class="tag">被@最多</span></div>
 </li>
 <li>
   <div class="rank-item">
-    <span class="rank-main">7. 小西米 — 104 条</span>
+    <span class="rank-main">小西米</span>
+    <span>104 条消息</span>
   </div>
-  <div class="star-note">群内电商实战派，本周从抖店销量暴涨到甘南自驾攻略两头忙。一面纠结"要不要放弃稳定合作去创业"，一面跟嘉哥疯狂记自驾笔记。在带货和露营之间反复横跳的打工人代表——上班想着发财，下班想着远方。</div>
-  <div class="tag-row">
-    <span class="tag">电商人</span>
-    <span class="tag">自驾追光者</span>
-    <span class="tag">生活纠结体</span>
-  </div>
+  <span class="star-note">正在为甘南之行做准备的旅行新手。最大的困扰是行李装不下，反复咨询一个小嘉露营要带什么——她的每次提问都问出了潜水群友的心声。</span>
+  <div class="tag-row"><span class="tag">旅行预备役</span><span class="tag">提问担当</span><span class="tag">行李焦虑</span></div>
 </li>
 <li>
   <div class="rank-item">
-    <span class="rank-main">8. Sun — 95 条</span>
+    <span class="rank-main">Sun</span>
+    <span>95 条消息</span>
   </div>
-  <div class="star-note">张家界旅游代言人，在群内负责科普张家界的服务水平——"12345马上解决""景区达到一万人马上调度公交车"。同时也是群内"高原生存指南"的活百科：从红景天到葡萄糖到可乐，一套高反预防方案信手拈来。</div>
-  <div class="tag-row">
-    <span class="tag">张家界推广大使</span>
-    <span class="tag">高原顾问</span>
-    <span class="tag">正经人</span>
-  </div>
+  <span class="star-note">群里的"一句话先生"——话不多但稳定输出观点。"电车就买特斯拉"这种简短有力的判断，直接终结了群里关于电动车的讨论。</span>
+  <div class="tag-row"><span class="tag">特斯拉传教士</span><span class="tag">观点输出</span><span class="tag">一锤定音</span></div>
 </li>
 <li>
   <div class="rank-item">
-    <span class="rank-main">9. 豆豆คิดถึง — 90 条</span>
+    <span class="rank-main">豆豆คิดถึง</span>
+    <span>90 条消息</span>
   </div>
-  <div class="star-note">本周的"啃老凡尔赛"冠军，一句"我妈给了我一万块"让全群破防。从恋爱脑的婚前存款故事到社保年限精算，她有本事把所有话题都聊成"你们看我是不是很会过日子"的大型晒生活现场。喝了酒第二天四点醒来还在群里打卡。</div>
-  <div class="tag-row">
-    <span class="tag">凡尔赛女王</span>
-    <span class="tag">人间清醒</span>
-    <span class="tag">啃老凡学</span>
-  </div>
+  <span class="star-note">强哥的官方CP。强哥每发一张照片她必到，然后用"啊哟""骚气十足"这类精准吐槽完成捧哏任务。两人一个炫一个损，配合天衣无缝。</span>
+  <div class="tag-row"><span class="tag">捧场小能手</span><span class="tag">强哥CP</span><span class="tag">吐槽位</span></div>
 </li>
 <li>
   <div class="rank-item">
-    <span class="rank-main">10. 懒人浅露系主任-强哥 — 82 条</span>
+    <span class="rank-main">懒人浅露系主任-强哥</span>
+    <span>82 条消息</span>
   </div>
-  <div class="star-note">本周的"空军担当"——在新西兰玩山地车、打猎、买二手车、看双彩虹，唯独钓不到鱼。他的存在本身就是这部群聊连续剧的喜剧担当：明明在国外过神仙日子，却因为钓不到鱼而天天在群里哭惨。买了台丰田AQUA像买菜一样方便。</div>
-  <div class="tag-row">
-    <span class="tag">职业空军</span>
-    <span class="tag">环球旅行家</span>
-    <span class="tag">新西兰在逃</span>
-  </div>
+  <span class="star-note">群友羡慕嫉妒恨的集中投放对象。每天都在钓鱼、露营和风骚穿搭之间切换，红色裤衩造型本周出圈。他的朋友圈大概写着"你们打工，我替你呼吸"。</span>
+  <div class="tag-row"><span class="tag">神仙日子</span><span class="tag">钓鱼佬</span><span class="tag">红衣主教</span></div>
 </li>
 <li>
   <div class="rank-item">
-    <span class="rank-main">11. Aelita — 81 条</span>
+    <span class="rank-main">Aelita</span>
+    <span>81 条消息</span>
   </div>
-  <div class="star-note">群内约局小能手，从野奢林烤鸡局到周末组队玩水，每一条消息都是在攒局或去局的路上。发现和嘉哥在三个共同群后开心得像个200斤的孩子，是那种"总觉得生活要搞点事情才不无聊"的热情型群友。</div>
-  <div class="tag-row">
-    <span class="tag">组局达人</span>
-    <span class="tag">热情型选手</span>
-    <span class="tag">社群粘合剂</span>
-  </div>
+  <span class="star-note">经常在山路驾驶一线发声。"弯道会车都想占对方车道""侄女到山下就吐了"——她的山路见闻为群聊贡献了真实的一手素材。</span>
+  <div class="tag-row"><span class="tag">山路安全官</span><span class="tag">活跃接话</span><span class="tag">驾驶见闻</span></div>
 </li>
 <li>
   <div class="rank-item">
-    <span class="rank-main">12. 包子 — 62 条</span>
+    <span class="rank-main">包子</span>
+    <span>62 条消息</span>
   </div>
-  <div class="star-note">群内电商行业的前辈（反面教材版），用一年学费+店铺被罚的经历，为群友展示了一条"抖音电商的死亡之路"。他最大的贡献不是发财经验，而是帮所有想入场的人省了一笔试错成本——"AB货被平台罚死了"这句话价值连城。</div>
-  <div class="tag-row">
-    <span class="tag">电商避坑指南</span>
-    <span class="tag">前车之鉴</span>
-    <span class="tag">亏过才懂</span>
-  </div>
+  <span class="star-note">群里的"合理质疑者"，经常用一句话戳破热情泡泡。从汽车质量到税务讨论都在输出冷静判断，属于那种不常开口但开口就有内容的人。</span>
+  <div class="tag-row"><span class="tag">人间清醒</span><span class="tag">补刀位</span><span class="tag">冷静观察</span></div>
 </li>
 <li>
   <div class="rank-item">
-    <span class="rank-main">13. 深二 — 55 条</span>
+    <span class="rank-main">深二</span>
+    <span>55 条消息</span>
   </div>
-  <div class="star-note">本周从股市聊到大盘、从年假聊到退休、从创业聊到打工——每一条发言都围绕着一个核心焦虑："我这班还上不上？"他是群内打工人的情绪代言人，用大量内心独白式的发言把中年职场的迷茫感拉满。适合BGM配《你的答案》。</div>
-  <div class="tag-row">
-    <span class="tag">职场哲学家</span>
-    <span class="tag">迷茫中产</span>
-    <span class="tag">股市韭菜</span>
-  </div>
+  <span class="star-note">群里的深度话题担当。从大盘分析到时事评论都有输出，名言"我们能看到的都是特定时间点别人想让你看到的"——本周最具哲思的一句话。</span>
+  <div class="tag-row"><span class="tag">股市军师</span><span class="tag">时政评论</span><span class="tag">深度话题</span></div>
 </li>
 <li>
   <div class="rank-item">
-    <span class="rank-main">14. 空灵净化科～咪寶 — 54 条</span>
+    <span class="rank-main">空灵净化科～咪寶</span>
+    <span>54 条消息</span>
   </div>
-  <div class="star-note">群内养生派掌门+谢霆锋粉丝团团长，从健康保险到每天运动到约人抢票看演唱会，她像一个行走的生活方式杂志编辑。名言"我现在慢慢得为以后孤独终老做好准备"——说最丧的话，过最养生的日子。</div>
-  <div class="tag-row">
-    <span class="tag">养生专家</span>
-    <span class="tag">演唱会搭子</span>
-    <span class="tag">未来规划师</span>
-  </div>
+  <span class="star-note">群里的气氛维持者。大量使用捂脸偷笑表情包完成社交功能，在多个话题中默默穿针引线，风格温和不抢戏但从不缺席。</span>
+  <div class="tag-row"><span class="tag">表情包王者</span><span class="tag">话题粘合剂</span><span class="tag">正能量位</span></div>
 </li>
 <li>
   <div class="rank-item">
-    <span class="rank-main">15. 史家大小姐 — 51 条</span>
+    <span class="rank-main">史家大小姐</span>
+    <span>51 条消息</span>
   </div>
-  <div class="star-note">前地产销冠现直播间主播，用"从春天玩到夏天"的往事展示了一个曾经财务自由的女人。本周她的呼啦圈教学意外成为群内女性最关注的话题，从体重分级到时长控制，专业程度堪比健身教练。明天出发去重庆，生活永远在路上。</div>
-  <div class="tag-row">
-    <span class="tag">前地产女王</span>
-    <span class="tag">呼啦圈教练</span>
-    <span class="tag">潇洒姐</span>
-  </div>
+  <span class="star-note">出场不多但每条都稳，分享了很多自驾游回忆。"很多年前云贵川重庆四省自驾游去的"——属于那种一开口就让人觉得"这个人有故事"的类型。</span>
+  <div class="tag-row"><span class="tag">潜水老司机</span><span class="tag">旅行回忆</span><span class="tag">少而精</span></div>
 </li>
 <li>
   <div class="rank-item">
-    <span class="rank-main">16. 苏苏 — 44 条</span>
+    <span class="rank-main">苏苏</span>
+    <span>44 条消息</span>
   </div>
-  <div class="star-note">群内捧场王+掌柜故事会的忠实读者，"掌柜出个故事会吧""最喜欢听掌柜讲故事"——她以一己之力养活了掌柜的叙述欲。同时也是群内的"微醺小公主"，每天晒饭晒酒晒心情，是那种"有她在群就不会冷场"的必备群友。</div>
-  <div class="tag-row">
-    <span class="tag">头号捧场王</span>
-    <span class="tag">微醺代言人</span>
-    <span class="tag">掌柜后援会</span>
-  </div>
+  <span class="star-note">本周贡献了最有冲击力的消息——"朋友被税务抱走电脑补税1千万"。同时坚持早晚锻炼半小时，属于群里的正能量与情报源合体。</span>
+  <div class="tag-row"><span class="tag">税务情报员</span><span class="tag">健身励志</span><span class="tag">社交达人</span></div>
 </li>
 <li>
   <div class="rank-item">
-    <span class="rank-main">17. 精神康复科—芥末 — 37 条</span>
+    <span class="rank-main">精神康复科—芥末</span>
+    <span>37 条消息</span>
   </div>
-  <div class="star-note">出镜不多但每句话都有分量——他是"纸箱烤鸡"的配方源头，是"不健康群"的忠实报名者，也是群里极少数敢直接怼掌柜"土鸡烤个毛"的人。他的存在证明了：有些人不靠刷屏刷存在感，靠的是关键时刻一句话定乾坤。</div>
-  <div class="tag-row">
-    <span class="tag">烤鸡之父</span>
-    <span class="tag">低耗高能</span>
-    <span class="tag">关键先生</span>
-  </div>
+  <span class="star-note">为梁掌柜的故事会现场拟章节标题的才子。同时是浏阳万石坞营地上线消息的首发人，群里的活动发动机。</span>
+  <div class="tag-row"><span class="tag">气氛担当</span><span class="tag">策划王</span><span class="tag">营地信息员</span></div>
 </li>
-
+<li>
+  <div class="rank-item">
+    <span class="rank-main">壹二</span>
+    <span>30 条消息</span>
+  </div>
+  <span class="star-note">话少但实用。梁掌柜被臭豆腐困扰时给了"水枪洗几次"的解决方案，群友讨论AT胎时给出建议——群里的实干派。</span>
+  <div class="tag-row"><span class="tag">技术流</span><span class="tag">实用建议</span><span class="tag">精准表达</span></div>
+</li>
+<li>
+  <div class="rank-item">
+    <span class="rank-main">🚬᭄謀財ღ᭄ꦿ꯭渡凡尘</span>
+    <span>24 条消息</span>
+  </div>
+  <span class="star-note">发言量不大，但在摄水涵沙的话题中稳定出现，属于"不主动发起但积极参与"的群友典型样本。</span>
+  <div class="tag-row"><span class="tag">围观群众</span><span class="tag">偶尔冒泡</span><span class="tag">跟队形</span></div>
+</li>
+<li>
+  <div class="rank-item">
+    <span class="rank-main">陈卓</span>
+    <span>23 条消息</span>
+  </div>
+  <span class="star-note">本周露脸不多，每次出现通常伴随着图片分享，属于低调但有存在感的群友。</span>
+  <div class="tag-row"><span class="tag">沉默记录者</span><span class="tag">偶尔分享</span><span class="tag">视觉贡献</span></div>
+</li>
       </ol>
+    </div>
+    <div id="active-stars-chart" class="stars-chart-container"></div>
+
+    <div class="section">
+      <h2>🔗 群友关系图谱</h2>
+      <div class="relationship-card">
+        <div class="forest-head">
+          <span class="forest-kicker">从聊天互动中挖掘成员间的微妙关系</span>
+          <span id="rel-note" class="forest-note"></span>
+        </div>
+        <div id="relationship-graph" class="relationship-canvas"></div>
+        <div id="rel-legend" class="relationship-legend"></div>
+      </div>
+      <div id="rel-tooltip" class="rel-tooltip"></div>
     </div>
 
     <div class="section forest-section">
@@ -941,9 +1031,367 @@
     </div>
   </div>
   <script>
-    const words = [["露营", 180], ["甘南", 150], ["自驾", 140], ["长沙", 130], ["莲宝叶则", 120], ["扎尕那", 115], ["川西", 110], ["钓鱼", 105], ["高反", 100], ["洛克之路", 95], ["无人机", 90], ["若尔盖", 85], ["野奢林", 80], ["直播", 75], ["抖音", 70], ["烤鸡", 68], ["台风", 65], ["张家界", 60], ["社保", 58], ["退休", 55], ["减肥", 52], ["特斯拉", 50], ["呼啦圈", 48], ["油耗", 45], ["湘江", 42]];
-    const trendData = [["7/22", 210], ["7/23", 477], ["7/24", 368], ["7/25", 134], ["7/26", 159], ["7/27", 311], ["7/28", 457]];
-    const forestData = {"center": {"title": "户外露营探索", "note": "从川西自驾到本地野奢林，群友核心关注户外生活与旅行探索"}, "branches": [{"title": "自驾旅行", "icon": "🚗", "color": "#f27bbc", "topics": ["甘南大环线", "莲宝叶则", "洛克之路", "扎尕那", "若尔盖"]}, {"title": "营地活动", "icon": "🏕️", "color": "#ffdf61", "topics": ["野奢林", "纸箱烤鸡", "炭火烧烤", "浏阳万石坞"]}, {"title": "本地生活", "icon": "🏙️", "color": "#c8ef70", "topics": ["长沙经济", "张家界旅游", "湘江晚霞", "台风暴雨"]}, {"title": "消费投资", "icon": "💰", "color": "#af7ce8", "topics": ["股市讨论", "社保退休", "房产物业", "电商直播"]}, {"title": "户外技能", "icon": "🎣", "color": "#6edfcf", "topics": ["钓鱼技巧", "路亚空军", "无人机航拍", "摄影剪辑"]}, {"title": "生活健康", "icon": "💪", "color": "#e97bde", "topics": ["减肥日常", "呼啦圈", "高反应对", "健身饮食"]}]};
+    const words = [["长沙", 98], ["露营", 62], ["甘南", 55], ["社保", 50], ["养老", 48], ["自驾游", 45], ["莲宝叶则", 42], ["特斯拉", 38], ["税务", 36], ["川西", 34], ["浏阳", 32], ["炒股", 30], ["青海湖", 28], ["梁掌柜", 26], ["阿坝", 24], ["若尔盖", 22], ["无人机", 20], ["减脂", 18], ["流星雨", 16], ["夏河", 14], ["高反", 14], ["房车", 12], ["查税", 12], ["剪映", 10], ["投资", 10]];
+    const trendData = [["07-22", 311], ["07-23", 684], ["07-24", 585], ["07-25", 226], ["07-26", 288], ["07-27", 488], ["07-28", 727]];
+    const forestData = {"center": {"title": "户外与自由生活", "note": "群聊以露营和户外为圆心，实际讨论辐射到自驾旅行、消费选择、经济生存到人生焦虑——表面聊去哪玩，实际在想怎么活得更自由。"}, "branches": [{"title": "自驾旅行", "icon": "🚐", "color": "#f27bbc", "topics": ["甘南川西转播", "莲宝叶则攻略", "青海湖方向", "若尔盖高反", "八月流星雨"]}, {"title": "消费选择", "icon": "🛻", "color": "#ffdf61", "topics": ["露营车耐用度", "特斯拉vs燃油", "国产车崛起", "二手车性价比"]}, {"title": "经济生存", "icon": "💰", "color": "#c8ef70", "topics": ["股市逃顶", "税务严查", "社保实缴", "长沙创业环境"]}, {"title": "长沙生活", "icon": "🏙️", "color": "#af7ce8", "topics": ["营商环境吐槽", "禁摩政策", "浏阳营地", "河西到河东"]}, {"title": "人生百态", "icon": "📖", "color": "#e97bde", "topics": ["梁掌柜故事会", "养老焦虑", "自由与牛马", "被偷经历"]}, {"title": "户外装备", "icon": "🎣", "color": "#6edfcf", "topics": ["无人机拍摄", "延时摄影", "帐篷选择", "露营穿搭"]}]};
+    const relData = {"note": "以一个小嘉为信息枢纽，梁掌柜与摄水涵沙组成长沙吐槽小分队，娟姐姐与苏苏、强哥与豆豆构成固定互动对——群里没有小圈子对抗，更像多个话题小组在同一个屋檐下各聊各的。", "nodes": [{"id": "一个小嘉", "weight": 38, "color": "#5b8cff", "role": "话题点火人"}, {"id": "梁掌柜", "weight": 30, "color": "#ff6b6b", "role": "故事供给站"}, {"id": "摄水涵沙", "weight": 26, "color": "#ffa94d", "role": "摄影情报员"}, {"id": "天下云", "weight": 25, "color": "#4de2ff", "role": "社交润滑剂"}, {"id": "娟姐姐", "weight": 24, "color": "#ff6b98", "role": "话题催化剂"}, {"id": "水梨开花", "weight": 22, "color": "#7bed9f", "role": "捧场王"}, {"id": "小西米", "weight": 21, "color": "#74b9ff", "role": "新手代表"}, {"id": "强哥", "weight": 20, "color": "#e056fd", "role": "神仙日子"}, {"id": "豆豆", "weight": 20, "color": "#fdcb6e", "role": "官方CP"}, {"id": "包子", "weight": 18, "color": "#a29bfe", "role": "人间清醒"}, {"id": "苏苏", "weight": 16, "color": "#ffd93d", "role": "情报达人"}, {"id": "深二", "weight": 14, "color": "#3bf0c3", "role": "哲思输出"}, {"id": "咪寶", "weight": 14, "color": "#fd79a8", "role": "表情包位"}, {"id": "芥末", "weight": 12, "color": "#00cec9", "role": "策划担当"}], "links": [{"source": "一个小嘉", "target": "小西米", "type": "答疑", "strength": 7}, {"source": "一个小嘉", "target": "梁掌柜", "type": "互侃", "strength": 8}, {"source": "一个小嘉", "target": "天下云", "type": "搭子", "strength": 5}, {"source": "梁掌柜", "target": "摄水涵沙", "type": "吐槽搭子", "strength": 7}, {"source": "梁掌柜", "target": "天下云", "type": "互侃", "strength": 6}, {"source": "娟姐姐", "target": "苏苏", "type": "姐妹淘", "strength": 6}, {"source": "娟姐姐", "target": "强哥", "type": "捧哏", "strength": 5}, {"source": "强哥", "target": "豆豆", "type": "欢喜冤家", "strength": 7}, {"source": "娟姐姐", "target": "一个小嘉", "type": "关心", "strength": 6}, {"source": "摄水涵沙", "target": "梁掌柜", "type": "吐槽搭子", "strength": 6}, {"source": "天下云", "target": "深二", "type": "股友", "strength": 5}, {"source": "水梨开花", "target": "一个小嘉", "type": "捧哏", "strength": 5}, {"source": "水梨开花", "target": "娟姐姐", "type": "互动", "strength": 4}, {"source": "咪寶", "target": "天下云", "type": "接话", "strength": 4}, {"source": "包子", "target": "梁掌柜", "type": "调侃", "strength": 4}, {"source": "芥末", "target": "梁掌柜", "type": "捧哏", "strength": 4}, {"source": "豆豆", "target": "苏苏", "type": "姐妹淘", "strength": 4}, {"source": "天下云", "target": "娟姐姐", "type": "互动", "strength": 5}, {"source": "一个小嘉", "target": "摄水涵沙", "type": "互侃", "strength": 5}, {"source": "一个小嘉", "target": "娟姐姐", "type": "关心", "strength": 5}, {"source": "天下云", "target": "水梨开花", "type": "互动", "strength": 4}, {"source": "梁掌柜", "target": "咪寶", "type": "互动", "strength": 3}, {"source": "一个小嘉", "target": "豆豆", "type": "互动", "strength": 3}, {"source": "包子", "target": "小西米", "type": "答疑", "strength": 4}]};
+    const activeStarsData = [["一个小嘉", 323], ["梁掌柜", 188], ["摄水涵沙", 134], ["天下云", 130], ["水梨开花", 112], ["娟姐姐", 108], ["小西米", 104], ["Sun", 95], ["豆豆", 90], ["强哥", 82], ["Aelita", 81], ["包子", 62], ["深二", 55], ["咪寶", 54], ["史家大小姐", 51], ["苏苏", 44], ["芥末", 37], ["壹二", 30], ["謀財渡凡尘", 24], ["陈卓", 23]];
+
+    (function renderRelationships() {
+      const container = document.getElementById('relationship-graph');
+      const legend = document.getElementById('rel-legend');
+      const tooltip = document.getElementById('rel-tooltip');
+      const note = document.getElementById('rel-note');
+
+      const nodes = Array.isArray(relData && relData.nodes) ? relData.nodes : [];
+      const links = Array.isArray(relData && relData.links) ? relData.links : [];
+
+      if (!nodes.length || !links.length) {
+        const section = container && container.closest('.section');
+        if (section) section.hidden = true;
+        return;
+      }
+
+      if (note && relData.note) note.textContent = String(relData.note);
+
+      const relTypes = [...new Set(links.map(function (l) { return l.type; }))];
+      const relColor = {
+        '基友': '#3bf0c3',
+        '塑料闺蜜': '#ff6b98',
+        '女神与舔狗': '#ffd93d',
+        '欢喜冤家': '#ff6b6b',
+        '姐妹淘': '#e056fd',
+        '商业互吹': '#ffa94d',
+        '捧哏与逗哏': '#4de2ff',
+        '搭子': '#7bed9f',
+        '师徒': '#a29bfe',
+        '大佬与萌新': '#fd79a8',
+        '点赞之交': '#74b9ff',
+        '竞争对手': '#fdcb6e'
+      };
+      const defaultColors = ['#3bf0c3', '#ff6b98', '#ffd93d', '#ff6b6b', '#e056fd', '#ffa94d', '#4de2ff', '#7bed9f'];
+      var colorMap = {};
+      relTypes.forEach(function (t, i) {
+        colorMap[t] = relColor[t] || defaultColors[i % defaultColors.length];
+      });
+
+      // Build legend
+      legend.innerHTML = relTypes.map(function (t) {
+        return '<span class="legend-item"><span class="legend-dot" style="background:' + colorMap[t] + '"></span>' + t + '</span>';
+      }).join('');
+
+      var w = container.clientWidth || 860;
+      var h = 560;
+      container.style.height = h + 'px';
+
+      var svg = d3.select(container)
+        .append('svg')
+        .attr('width', w)
+        .attr('height', h)
+        .attr('viewBox', [0, 0, w, h])
+        .style('display', 'block');
+
+      var g = svg.append('g');
+
+      // Zoom
+      svg.call(d3.zoom().scaleExtent([0.3, 3]).on('zoom', function (event) {
+        g.attr('transform', event.transform);
+      }));
+
+      // Arrow markers for links
+      relTypes.forEach(function (t) {
+        svg.append('defs').append('marker')
+          .attr('id', 'arrow-' + t.replace(/\s/g, ''))
+          .attr('viewBox', '0 -5 10 10')
+          .attr('refX', 30)
+          .attr('refY', 0)
+          .attr('markerWidth', 8)
+          .attr('markerHeight', 8)
+          .attr('orient', 'auto')
+          .append('path')
+          .attr('d', 'M0,-5L10,0L0,5')
+          .attr('fill', colorMap[t] || '#888');
+      });
+
+      // Build simulation
+      var simulation = d3.forceSimulation(nodes)
+        .force('link', d3.forceLink(links).id(function (d) { return d.id; }).distance(130).strength(0.4))
+        .force('charge', d3.forceManyBody().strength(-380))
+        .force('center', d3.forceCenter(w / 2, h / 2))
+        .force('collision', d3.forceCollide(52));
+
+      // Draw links
+      var link = g.append('g')
+        .selectAll('line')
+        .data(links)
+        .join('line')
+        .attr('stroke', function (d) { return colorMap[d.type] || '#555'; })
+        .attr('stroke-width', function (d) { return (d.strength || 5) * 0.7; })
+        .attr('stroke-dasharray', function (d) {
+          var unstable = ['塑料闺蜜', '欢喜冤家', '竞争对手'];
+          return unstable.indexOf(d.type) >= 0 ? '6,4' : 'none';
+        })
+        .attr('stroke-opacity', 0.7)
+        .attr('marker-end', function (d) { return 'url(#arrow-' + d.type.replace(/\s/g, '') + ')'; });
+
+      // Link labels
+      var linkLabel = g.append('g')
+        .selectAll('text')
+        .data(links)
+        .join('text')
+        .text(function (d) { return d.type; })
+        .attr('fill', function (d) { return colorMap[d.type] || '#888'; })
+        .attr('font-size', 11)
+        .attr('font-weight', 600)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('paint-order', 'stroke')
+        .attr('stroke', 'rgba(5,8,22,0.85)')
+        .attr('stroke-width', 3)
+        .attr('stroke-linecap', 'round')
+        .attr('stroke-linejoin', 'round')
+        .style('pointer-events', 'none');
+
+      // Draw nodes
+      var node = g.append('g')
+        .selectAll('g')
+        .data(nodes)
+        .join('g')
+        .call(d3.drag()
+          .on('start', function (event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+          })
+          .on('drag', function (event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+          })
+          .on('end', function (event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+          })
+        );
+
+      // Node circles
+      node.append('circle')
+        .attr('r', function (d) { return Math.min(48, (d.weight || 10) + 14); })
+        .attr('fill', function (d) { return d.color || '#5b8cff'; })
+        .attr('stroke', function (d) { return d.color || '#5b8cff'; })
+        .attr('stroke-width', 2)
+        .attr('stroke-opacity', 0.5)
+        .style('filter', 'drop-shadow(0 0 8px rgba(91,140,255,0.3))')
+        .style('cursor', 'pointer');
+
+      // Glow ring
+      node.append('circle')
+        .attr('r', function (d) { return Math.min(48, (d.weight || 10) + 14) + 4; })
+        .attr('fill', 'none')
+        .attr('stroke', function (d) { return d.color || '#5b8cff'; })
+        .attr('stroke-width', 1)
+        .attr('stroke-opacity', 0.2);
+
+      // Node labels
+      node.append('text')
+        .text(function (d) { return Array.from(String(d.id || '')).slice(0, 8).join(''); })
+        .attr('fill', '#ffffff')
+        .attr('font-size', function (d) { return Math.min(14, (d.weight || 10) + 7); })
+        .attr('font-weight', 700)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif')
+        .style('pointer-events', 'none');
+
+      // Node subtitle (relationship role)
+      node.append('text')
+        .text(function (d) { return d.role || ''; })
+        .attr('fill', 'rgba(255,255,255,0.6)')
+        .attr('font-size', 10)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('dy', function (d) { return (Math.min(48, (d.weight || 10) + 14)) + 14; })
+        .attr('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif')
+        .style('pointer-events', 'none');
+
+      // Hover tooltip
+      node.on('mouseover', function (event, d) {
+        var rels = links.filter(function (l) {
+          return (l.source.id || l.source) === d.id || (l.target.id || l.target) === d.id;
+        });
+        var html = '<strong>' + d.id + '</strong>';
+        if (d.role) html += '<br>角色：' + d.role;
+        html += '<br>互动关系：';
+        rels.slice(0, 5).forEach(function (r) {
+          var peer = (r.source.id || r.source) === d.id ? (r.target.id || r.target) : (r.source.id || r.source);
+          html += '<br> · → ' + peer + ' <span style="color:' + (colorMap[r.type] || '#888') + '">' + r.type + '</span>';
+        });
+        tooltip.innerHTML = html;
+        tooltip.style.opacity = 1;
+        var rect = container.getBoundingClientRect();
+        tooltip.style.left = Math.min(event.clientX - rect.left + 12, w - 260) + 'px';
+        tooltip.style.top = Math.max(event.clientY - rect.top - 10, 10) + 'px';
+      }).on('mousemove', function (event) {
+        var rect = container.getBoundingClientRect();
+        tooltip.style.left = Math.min(event.clientX - rect.left + 12, w - 260) + 'px';
+        tooltip.style.top = Math.max(event.clientY - rect.top - 10, 10) + 'px';
+      }).on('mouseout', function () {
+        tooltip.style.opacity = 0;
+      });
+
+      // Physics tick
+      simulation.on('tick', function () {
+        link
+          .attr('x1', function (d) { return d.source.x; })
+          .attr('y1', function (d) { return d.source.y; })
+          .attr('x2', function (d) { return d.target.x; })
+          .attr('y2', function (d) { return d.target.y; });
+
+        linkLabel
+          .attr('x', function (d) { return (d.source.x + d.target.x) / 2; })
+          .attr('y', function (d) { return (d.source.y + d.target.y) / 2; });
+
+        node.attr('transform', function (d) { return 'translate(' + d.x + ',' + d.y + ')'; });
+      });
+    })();
+
+    (function renderActiveStarsChart() {
+      const container = document.getElementById('active-stars-chart');
+      const data = Array.isArray(activeStarsData) ? activeStarsData : [];
+      if (!container || !data.length) return;
+
+      const names = data.map(function (d) { return d[0]; });
+      const values = data.map(function (d) { return d[1]; });
+      var maxVal = 0;
+      values.forEach(function (v) { if (v > maxVal) maxVal = v; });
+      maxVal = Math.ceil(maxVal * 1.12);
+
+      var w = container.clientWidth || 820;
+      var margin = { top: 14, right: 72, bottom: 14, left: 0 };
+      var rowH = 36;
+      var gap = 6;
+      var barH = rowH - gap;
+      var h = data.length * rowH + margin.top + margin.bottom;
+
+      // measure max name width
+      var temp = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      temp.setAttribute('font-size', '13');
+      temp.setAttribute('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif');
+      document.body.appendChild(temp);
+      var maxNameW = 0;
+      names.forEach(function (n) {
+        temp.textContent = n;
+        var bw = temp.getBBox ? temp.getBBox().width : n.length * 13;
+        if (bw > maxNameW) maxNameW = bw;
+      });
+      document.body.removeChild(temp);
+      margin.left = Math.min(Math.max(maxNameW + 16, 72), 200);
+
+      var plotW = w - margin.left - margin.right;
+
+      var svg = d3.select(container)
+        .append('svg')
+        .attr('width', w)
+        .attr('height', h)
+        .attr('viewBox', [0, 0, w, h])
+        .style('overflow', 'visible');
+
+      var defs = svg.append('defs');
+      data.forEach(function (d, i) {
+        var ratio = d[1] / maxVal;
+        var gradId = 'bar-grad-' + i;
+        var grad = defs.append('linearGradient')
+          .attr('id', gradId)
+          .attr('x1', '0%').attr('y1', '0%')
+          .attr('x2', '100%').attr('y2', '0%');
+        grad.append('stop').attr('offset', '0%')
+          .attr('stop-color', ratio > 0.7 ? '#4de2ff' : ratio > 0.4 ? '#5b8cff' : '#7b61ff')
+          .attr('stop-opacity', 0.85);
+        grad.append('stop').attr('offset', '100%')
+          .attr('stop-color', ratio > 0.7 ? '#5b8cff' : ratio > 0.4 ? '#7b61ff' : '#a29bfe')
+          .attr('stop-opacity', 0.55);
+      });
+
+      var y = d3.scaleBand()
+        .domain(d3.range(data.length))
+        .range([margin.top, h - margin.bottom])
+        .padding(0.15);
+
+      var x = d3.scaleLinear()
+        .domain([0, maxVal])
+        .range([margin.left, w - margin.right]);
+
+      svg.append('g')
+        .selectAll('rect.bg')
+        .data(d3.range(data.length))
+        .join('rect')
+        .attr('class', 'bg')
+        .attr('x', margin.left)
+        .attr('y', function (d) { return y(d); })
+        .attr('height', y.bandwidth())
+        .attr('width', plotW)
+        .attr('fill', 'rgba(255,255,255,0.02)')
+        .attr('rx', 4);
+
+      svg.append('g')
+        .selectAll('rect.bar')
+        .data(data)
+        .join('rect')
+        .attr('class', 'bar')
+        .attr('y', function (d, i) { return y(i); })
+        .attr('x', margin.left)
+        .attr('height', y.bandwidth())
+        .attr('width', function (d) { return Math.max(4, x(d[1]) - margin.left); })
+        .attr('fill', function (d, i) { return 'url(#bar-grad-' + i + ')'; })
+        .attr('rx', function (d) { return (y.bandwidth()) / 2; })
+        .attr('ry', function (d) { return (y.bandwidth()) / 2; });
+
+      // name labels
+      svg.append('g')
+        .selectAll('text.name')
+        .data(data)
+        .join('text')
+        .attr('class', 'name')
+        .attr('x', margin.left - 8)
+        .attr('y', function (d, i) { return y(i) + y.bandwidth() / 2; })
+        .attr('fill', '#dbe7ff')
+        .attr('font-size', 13)
+        .attr('font-weight', 600)
+        .attr('text-anchor', 'end')
+        .attr('dominant-baseline', 'middle')
+        .attr('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif')
+        .text(function (d) { return d[0]; });
+
+      // value labels at bar end
+      svg.append('g')
+        .selectAll('text.val')
+        .data(data)
+        .join('text')
+        .attr('class', 'val')
+        .attr('x', function (d) { return Math.max(x(d[1]) + 8, margin.left + 8); })
+        .attr('y', function (d, i) { return y(i) + y.bandwidth() / 2; })
+        .attr('fill', '#4de2ff')
+        .attr('font-size', 13)
+        .attr('font-weight', 700)
+        .attr('dominant-baseline', 'middle')
+        .attr('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif')
+        .text(function (d) { return d[1]; });
+
+      // grid lines
+      var ticks = x.ticks(5);
+      svg.append('g')
+        .selectAll('line.grid')
+        .data(ticks)
+        .join('line')
+        .attr('class', 'grid')
+        .attr('x1', function (d) { return x(d); })
+        .attr('x2', function (d) { return x(d); })
+        .attr('y1', margin.top)
+        .attr('y2', h - margin.bottom)
+        .attr('stroke', 'rgba(90, 150, 255, 0.1)')
+        .attr('stroke-width', 1)
+        .attr('stroke-dasharray', '4,4');
+    })();
 
     (function renderTopicForest() {
       const forest = document.getElementById('topic-forest');
