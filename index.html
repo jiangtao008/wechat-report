@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>微信群周报</title>
+  <title>微信群周报 · 报告总览</title>
   <style>
     :root {
       --bg: #050816;
@@ -11,169 +11,279 @@
       --panel-strong: rgba(14, 25, 52, 0.96);
       --line: rgba(90, 150, 255, 0.22);
       --text: #dbe7ff;
+      --text-dim: #6a7da6;
       --muted: #8ea4d4;
       --cyan: #4de2ff;
       --blue: #5b8cff;
       --green: #3bf0c3;
+      --purple: #af7ce8;
+      --orange: #f0a33b;
       --glow: 0 0 24px rgba(77, 226, 255, 0.16);
+      --radius: 12px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: "Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at top left, rgba(91, 140, 255, 0.24), transparent 28%),
-        radial-gradient(circle at top right, rgba(77, 226, 255, 0.18), transparent 24%),
+        radial-gradient(ellipse at top left, rgba(91, 140, 255, 0.24), transparent 28%),
+        radial-gradient(ellipse at top right, rgba(77, 226, 255, 0.18), transparent 24%),
         linear-gradient(180deg, #040712 0%, #081022 52%, #050816 100%);
       min-height: 100vh;
-      padding: 40px 20px;
+      padding: 32px 16px;
     }
 
     .container {
-      max-width: 800px;
+      max-width: 880px;
       margin: 0 auto;
     }
 
+    /* ─── Header ─── */
     header {
       text-align: center;
-      margin-bottom: 48px;
+      margin-bottom: 40px;
     }
 
     header h1 {
-      font-size: 2.4rem;
+      font-size: 2.2rem;
       font-weight: 700;
       background: linear-gradient(135deg, var(--cyan), var(--blue));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
 
-    header p {
+    header .subtitle {
       color: var(--muted);
-      font-size: 1rem;
+      font-size: 0.95rem;
     }
 
-    .report-grid {
+    header .subtitle .count-badge {
+      display: inline-block;
+      background: rgba(77, 226, 255, 0.12);
+      border: 1px solid rgba(77, 226, 255, 0.25);
+      padding: 2px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: var(--cyan);
+      margin-left: 8px;
+    }
+
+    /* ─── Stats bar ─── */
+    .stats-bar {
       display: flex;
-      flex-direction: column;
-      gap: 20px;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
     }
 
-    .report-card {
+    .stat-chip {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 6px 18px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .stat-chip strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* ─── Tree ─── */
+    .tree { display: flex; flex-direction: column; gap: 12px; }
+
+    /* Group node */
+    .group-node {
       background: var(--panel-strong);
       border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 28px 32px;
-      transition: all 0.3s ease;
-      cursor: pointer;
-      text-decoration: none;
-      display: block;
-      position: relative;
+      border-radius: var(--radius);
       overflow: hidden;
+      transition: border-color 0.3s ease;
     }
 
-    .report-card::before {
+    .group-node.expanded {
+      border-color: rgba(77, 226, 255, 0.35);
+    }
+
+    .group-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s ease;
+    }
+
+    .group-header:hover {
+      background: rgba(77, 226, 255, 0.04);
+    }
+
+    .group-header .toggle-icon {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      transition: transform 0.3s ease;
+    }
+
+    .group-node.expanded .toggle-icon {
+      transform: rotate(90deg);
+    }
+
+    .group-header .group-icon {
+      flex-shrink: 0;
+      font-size: 1.3rem;
+    }
+
+    .group-header .group-name {
+      flex: 1;
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    .group-header .file-count {
+      flex-shrink: 0;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      background: rgba(90, 150, 255, 0.1);
+      border-radius: 20px;
+      padding: 2px 10px;
+    }
+
+    .group-header .group-arrow {
+      flex-shrink: 0;
+      font-size: 1.1rem;
+      color: var(--text-dim);
+      transition: all 0.3s ease;
+    }
+
+    .group-node.expanded .group-arrow {
+      color: var(--cyan);
+    }
+
+    /* File list */
+    .file-list {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+
+    .group-node.expanded .file-list {
+      max-height: 1000px; /* plenty for any group */
+    }
+
+    .file-items {
+      padding: 0 20px 14px 68px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .file-item::before {
       content: '';
       position: absolute;
+      left: -16px;
       top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: linear-gradient(180deg, var(--cyan), var(--blue));
-      opacity: 0.6;
-      transition: opacity 0.3s ease;
+      bottom: 0;
+      width: 2px;
+      background: var(--line);
+      border-radius: 1px;
+      transition: background 0.3s ease;
     }
 
-    .report-card:hover {
-      border-color: var(--cyan);
-      box-shadow: var(--glow), 0 8px 32px rgba(77, 226, 255, 0.08);
-      transform: translateY(-2px);
+    .file-item:hover {
+      background: rgba(77, 226, 255, 0.06);
     }
 
-    .report-card:hover::before {
-      opacity: 1;
+    .file-item:hover::before {
+      background: var(--cyan);
     }
 
-    .report-card .group-tag {
-      display: inline-block;
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 4px 12px;
-      border-radius: 20px;
-      margin-bottom: 12px;
-      letter-spacing: 0.5px;
+    .file-item .file-icon {
+      flex-shrink: 0;
+      font-size: 1rem;
+      opacity: 0.7;
     }
 
-    .group-tag.group-1 {
-      background: rgba(91, 140, 255, 0.18);
-      color: var(--blue);
-      border: 1px solid rgba(91, 140, 255, 0.3);
+    .file-item .file-title {
+      flex: 1;
+      font-size: 0.92rem;
+      font-weight: 500;
     }
 
-    .group-tag.group-2 {
-      background: rgba(59, 240, 195, 0.15);
-      color: var(--green);
-      border: 1px solid rgba(59, 240, 195, 0.3);
+    .file-item .file-meta {
+      flex-shrink: 0;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      max-width: 220px;
+      text-align: right;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .group-tag.group-3 {
-      background: rgba(175, 124, 232, 0.18);
-      color: #af7ce8;
-      border: 1px solid rgba(175, 124, 232, 0.3);
-    }
-
-    .report-card h2 {
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: var(--text);
-    }
-
-    .report-card .meta {
+    .file-item .file-link-icon {
+      flex-shrink: 0;
       font-size: 0.85rem;
-      color: var(--muted);
-    }
-
-    .report-card .arrow {
-      position: absolute;
-      right: 28px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 1.5rem;
-      color: var(--muted);
+      color: var(--text-dim);
       transition: all 0.3s ease;
     }
 
-    .report-card:hover .arrow {
+    .file-item:hover .file-link-icon {
       color: var(--cyan);
-      right: 24px;
+      transform: translateX(3px);
     }
 
+    /* Empty fallback */
     .empty-state {
       text-align: center;
-      padding: 80px 20px;
-      color: var(--muted);
+      padding: 60px 20px;
     }
 
     .empty-state .icon {
       font-size: 3rem;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
+    .empty-state p {
+      color: var(--muted);
+    }
+
+    /* ─── Footer ─── */
     footer {
       text-align: center;
-      margin-top: 60px;
-      padding-top: 24px;
+      margin-top: 48px;
+      padding-top: 20px;
       border-top: 1px solid var(--line);
       color: var(--muted);
-      font-size: 0.85rem;
+      font-size: 0.82rem;
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
     }
 
     footer a {
@@ -184,70 +294,199 @@
     footer a:hover {
       text-decoration: underline;
     }
+
+    footer .dot {
+      color: var(--line);
+    }
+
+    /* ─── Loading ─── */
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--line);
+      border-top-color: var(--cyan);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 640px) {
+      header h1 { font-size: 1.6rem; }
+      .group-header { padding: 12px 14px; }
+      .file-items { padding: 0 14px 12px 48px; }
+      .file-item .file-meta { display: none; }
+      .file-item { padding: 8px 10px; }
+      .stat-chip { font-size: 0.75rem; padding: 4px 12px; }
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
       <h1>📊 微信群周报</h1>
-      <p>选择下方报告查看群聊动态分析</p>
+      <p class="subtitle">
+        选择报告查看群聊动态分析
+        <span class="count-badge" id="total-badge">…</span>
+      </p>
     </header>
 
-    <div class="report-grid" id="report-list">
+    <div class="stats-bar" id="stats-bar"></div>
+
+    <div class="tree" id="tree">
       <div class="empty-state">
-        <div class="icon">📭</div>
+        <div class="icon">
+          <span class="loading-spinner"></span>
+        </div>
         <p>正在加载报告列表…</p>
       </div>
     </div>
 
     <footer>
-      <a href="https://github.com/jiangtao008/wechat-report" target="_blank">GitHub</a> ·
+      <a href="https://github.com/jiangtao008/wechat-report" target="_blank">GitHub</a>
+      <span class="dot">·</span>
       <span>自动生成 · 群聊洞察</span>
+      <span class="dot">·</span>
+      <span id="update-time"></span>
     </footer>
   </div>
 
   <script>
-    // 报告列表 — 新增报告在这里添加
-    const REPORTS = [
-      {
-        title: 'Tesla特特特能说',
-        file: 'group-1/Tesla特特特能说_群聊周报.html',
-        group: 'group-1',
-        meta: '特斯拉车友群 · 群聊周报'
-      },
-      {
-        title: '长沙正能量搭子❶群',
-        file: 'group-2/长沙正能量搭子群_周报.html',
-        group: 'group-2',
-        meta: '长沙本地搭子群 · 群聊周报'
-      },
-      {
-        title: '湖南露营学院',
-        file: 'group-3/湖南露营学院_群聊周报.html',
-        group: 'group-3',
-        meta: '户外露营群 · 群聊周报'
-      }
-    ];
+    // ─── 加载 index.json ────────────────────────────────────────
+    // 如果 fetch 失败（例如 file:// 协议不支持），回退到内嵌数据
+    const FALLBACK_DATA = {
+      updated: '2026-07-29T16:43:00+08:00',
+      groups: [
+        {
+          name: 'group-1',
+          files: [
+            { title: 'Tesla特特特能说', file: 'group-1/Tesla特特特能说_20260729.html', meta: 'group-1 · 2026-07-29' },
+            { title: 'Tesla特特特能说', file: 'group-1/Tesla特特特能说_群聊周报.html', meta: 'group-1 · 群聊周报' }
+          ]
+        },
+        {
+          name: 'group-2',
+          files: [
+            { title: '长沙正能量搭子群', file: 'group-2/长沙正能量搭子群_周报.html', meta: 'group-2 · 群聊周报' }
+          ]
+        },
+        {
+          name: 'group-3',
+          files: [
+            { title: '湖南露营学院', file: 'group-3/湖南露营学院_群聊周报.html', meta: 'group-3 · 群聊周报' }
+          ]
+        }
+      ]
+    };
 
-    const el = document.getElementById('report-list');
+    // 为每个 group 分配颜色
+    const GROUP_COLORS = ['#5b8cff', '#3bf0c3', '#af7ce8', '#f0a33b', '#ff6b8a', '#4de2ff'];
+    const GROUP_ICONS = ['💬', '🤝', '🏕️', '🎯', '⭐', '🔮'];
 
-    if (REPORTS.length === 0) {
-      el.innerHTML = `
-        <div class="empty-state">
-          <div class="icon">📭</div>
-          <p>暂无报告，请先生成一份群聊周报</p>
-        </div>
-      `;
-    } else {
-      el.innerHTML = REPORTS.map(r => `
-        <a class="report-card" href="${r.file}">
-          <span class="group-tag ${r.group}">${r.group}</span>
-          <h2>${r.title}</h2>
-          <div class="meta">${r.meta}</div>
-          <span class="arrow">→</span>
-        </a>
-      `).join('');
+    function getGroupStyle(index) {
+      const c = GROUP_COLORS[index % GROUP_COLORS.length];
+      return {
+        color: c,
+        borderColor: c + '44',
+        bg: c + '0d',
+        icon: GROUP_ICONS[index % GROUP_ICONS.length],
+      };
     }
+
+    function render(data) {
+      const groups = data.groups || [];
+      const totalFiles = groups.reduce((s, g) => s + (g.files?.length || 0), 0);
+
+      // Badge
+      document.getElementById('total-badge').textContent = totalFiles + ' 份报告';
+
+      // Stats bar
+      const statsEl = document.getElementById('stats-bar');
+      statsEl.innerHTML = [
+        `<span class="stat-chip">📁 <strong>${groups.length}</strong> 个群组</span>`,
+        `<span class="stat-chip">📄 <strong>${totalFiles}</strong> 份报告</span>`,
+      ].join('');
+
+      // Update time
+      if (data.updated) {
+        document.getElementById('update-time').textContent = '更新于 ' + data.updated.replace('T', ' ').replace(/\.\d+Z/, '').replace(/[+-]\d{2}:\d{2}$/, '');
+      }
+
+      // Tree
+      const treeEl = document.getElementById('tree');
+
+      if (groups.length === 0) {
+        treeEl.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">📭</div>
+            <p>暂无报告，请先生成一份群聊周报</p>
+          </div>
+        `;
+        return;
+      }
+
+      treeEl.innerHTML = groups.map((group, gi) => {
+        const files = group.files || [];
+        const style = getGroupStyle(gi);
+        const groupId = 'group-' + gi;
+
+        const fileItems = files.map((f, fi) => `
+          <a class="file-item" href="${escapeHtml(f.file)}" title="${escapeHtml(f.meta)}">
+            <span class="file-icon">📄</span>
+            <span class="file-title">${escapeHtml(f.title)}</span>
+            <span class="file-meta">${escapeHtml(f.meta)}</span>
+            <span class="file-link-icon">→</span>
+          </a>
+        `).join('');
+
+        return `
+          <div class="group-node expanded" data-group="${gi}">
+            <div class="group-header" onclick="toggleGroup(${gi})">
+              <span class="toggle-icon">▶</span>
+              <span class="group-icon">${style.icon}</span>
+              <span class="group-name" style="color:${style.color}">${escapeHtml(group.name || group.label || group.title || '未命名群组')}</span>
+              <span class="file-count">${files.length} 份</span>
+              <span class="group-arrow">→</span>
+            </div>
+            <div class="file-list">
+              <div class="file-items">
+                ${fileItems || '<div style="color:var(--text-dim);padding:8px 0;font-size:0.85rem;">该目录暂无 HTML 报告</div>'}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleGroup(index) {
+      const node = document.querySelector(`.group-node[data-group="${index}"]`);
+      if (node) {
+        node.classList.toggle('expanded');
+      }
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ─── Bootstrap ──────────────────────────────────────────────
+    // Try fetching index.json; on failure use fallback
+    fetch('./index.json')
+      .then(r => r.json())
+      .then(data => render(data))
+      .catch(() => {
+        console.warn('index.json 加载失败（file:// 协议常见），使用内嵌数据。');
+        console.warn('提示：运行 bash generate-index.sh 可更新 index.json');
+        render(FALLBACK_DATA);
+      });
   </script>
 </body>
 </html>

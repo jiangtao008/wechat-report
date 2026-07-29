@@ -1,0 +1,50 @@
+{
+  "updated": "2026-07-29T18:20:00Z",
+  "groups": [
+    {
+      "name": "Tesla特特特能说",
+      "files": [
+        {
+          "title": "Tesla特特特能说_群聊日报_20260729",
+          "file": "group-1/Tesla特特特能说_20260729.html",
+          "meta": "group-1 · Tesla特特特能说_20260729.html"
+        },
+        {
+          "title": "Tesla特特特能说_群聊周报",
+          "file": "group-1/Tesla特特特能说_群聊周报.html",
+          "meta": "group-1 · Tesla特特特能说_群聊周报.html"
+        }
+      ]
+    },
+    {
+      "name": "长沙正能量搭子群",
+      "files": [
+        {
+          "title": "长沙正能量搭子群_群聊周报",
+          "file": "group-2/长沙正能量搭子群_周报.html",
+          "meta": "group-2 · 长沙正能量搭子群_周报.html"
+        }
+      ]
+    },
+    {
+      "name": "湖南露营学院",
+      "files": [
+        {
+          "title": "湖南露营学院_群聊周报",
+          "file": "group-3/湖南露营学院_群聊周报.html",
+          "meta": "group-3 · 湖南露营学院_群聊周报.html"
+        }
+      ]
+    },
+    {
+      "name": "保利北中心G区业主群",
+      "files": [
+        {
+          "title": "保利北中心G区业主群_群聊周报",
+          "file": "group-4/保利北中心G区业主群_20260729.html",
+          "meta": "group-4 · 保利北中心G区业主群_20260729.html"
+        }
+      ]
+    }
+  ]
+}

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{GROUP_NAME}} 群聊动态报告</title>
   <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.3/src/wordcloud2.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js';document.head.appendChild(s)"></script>
   <style>
     :root {
       --bg: #050816;
@@ -601,11 +601,11 @@
 
     <div class="section">
       <h2>区间活跃之星</h2>
+      <div id="active-stars-chart" class="stars-chart-container"></div>
       <ol>
         {{ACTIVE_STARS}}
       </ol>
     </div>
-    <div id="active-stars-chart" class="stars-chart-container"></div>
 
     <div class="section">
       <h2>🔗 群友关系图谱</h2>
@@ -647,12 +647,14 @@
   </div>
   <script>
     const words = {{WORD_CLOUD_DATA}};
+    const reportType = '{{REPORT_TYPE}}';
     const trendData = {{TREND_DATA}};
     const forestData = {{TOPIC_FOREST_DATA}};
     const relData = {{GROUP_RELATIONSHIPS}};
     const activeStarsData = {{ACTIVE_STARS_DATA}};
 
     (function renderRelationships() {
+      try {
       const container = document.getElementById('relationship-graph');
       const legend = document.getElementById('rel-legend');
       const tooltip = document.getElementById('rel-tooltip');
@@ -662,6 +664,13 @@
       const links = Array.isArray(relData && relData.links) ? relData.links : [];
 
       if (!nodes.length || !links.length) {
+        const section = container && container.closest('.section');
+        if (section) section.hidden = true;
+        return;
+      }
+
+      // Guard: D3 not loaded → silently skip
+      if (typeof d3 === 'undefined') {
         const section = container && container.closest('.section');
         if (section) section.hidden = true;
         return;
@@ -868,9 +877,11 @@
 
         node.attr('transform', function (d) { return 'translate(' + d.x + ',' + d.y + ')'; });
       });
+      } catch(e) { console.warn('关系图谱渲染失败:', e); }
     })();
 
     (function renderActiveStarsChart() {
+      try {
       const container = document.getElementById('active-stars-chart');
       const data = Array.isArray(activeStarsData) ? activeStarsData : [];
       if (!container || !data.length) return;
@@ -888,19 +899,15 @@
       var barH = rowH - gap;
       var h = data.length * rowH + margin.top + margin.bottom;
 
-      // measure max name width
-      var temp = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      temp.setAttribute('font-size', '13');
-      temp.setAttribute('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif');
-      document.body.appendChild(temp);
+      // measure max name width using canvas (reliable for CJK)
+      var meas = document.createElement('canvas').getContext('2d');
+      meas.font = '13px "Microsoft YaHei", "PingFang SC", sans-serif';
       var maxNameW = 0;
       names.forEach(function (n) {
-        temp.textContent = n;
-        var bw = temp.getBBox ? temp.getBBox().width : n.length * 13;
+        var bw = meas.measureText(n).width;
         if (bw > maxNameW) maxNameW = bw;
       });
-      document.body.removeChild(temp);
-      margin.left = Math.min(Math.max(maxNameW + 16, 72), 200);
+      margin.left = Math.max(maxNameW + 20, 72);
 
       var plotW = w - margin.left - margin.right;
 
@@ -1006,230 +1013,139 @@
         .attr('stroke', 'rgba(90, 150, 255, 0.1)')
         .attr('stroke-width', 1)
         .attr('stroke-dasharray', '4,4');
+      } catch(e) { console.warn('活跃之星图表渲染失败:', e); }
     })();
 
     (function renderTopicForest() {
-      const forest = document.getElementById('topic-forest');
-      const note = document.getElementById('forest-note');
-      const svgNs = 'http://www.w3.org/2000/svg';
-      const palette = ['#f27bbc', '#ffdf61', '#c8ef70', '#af7ce8', '#e97bde', '#6edfcf'];
-      const label = (value) => Array.from(String(value || '')).slice(0, 12).join('');
-      const element = (tag, attributes = {}) => {
-        const node = document.createElementNS(svgNs, tag);
-        Object.entries(attributes).forEach(([key, value]) => node.setAttribute(key, value));
-        return node;
-      };
-      const wrap = (value, width) => {
-        const characters = Array.from(label(value));
-        const lines = [];
-        for (let index = 0; index < characters.length; index += width) {
-          lines.push(characters.slice(index, index + width).join(''));
+      try {
+        const svg = document.getElementById('topic-forest');
+        const noteEl = document.getElementById('forest-note');
+        if (!svg || !forestData || !forestData.center) return;
+
+        // 已有预渲染内容（LLM 生成）→ 只设备注
+        if (svg.children.length > 0) {
+          if (noteEl) noteEl.textContent = String(forestData.center.note || '');
+          return;
         }
-        return lines.length ? lines : [''];
-      };
-      const addLines = (group, lines, x, y, options = {}) => {
-        const lineHeight = options.lineHeight || 20;
-        const startY = y - ((lines.length - 1) * lineHeight) / 2;
-        lines.forEach((line, index) => {
-          const text = element('text', {
-            x,
-            y: startY + index * lineHeight,
-            fill: options.fill || '#101623',
-            'font-size': options.size || 16,
-            'font-weight': options.weight || '700',
-            'text-anchor': 'middle',
-            'dominant-baseline': 'middle',
-            'font-family': '"Microsoft YaHei", "PingFang SC", sans-serif'
-          });
-          text.textContent = line;
-          group.appendChild(text);
-        });
-      };
-      const contrast = (color) => {
-        const match = /^#([0-9a-f]{6})$/i.exec(color || '');
-        if (!match) return '#101623';
-        const value = match[1];
-        const red = parseInt(value.slice(0, 2), 16);
-        const green = parseInt(value.slice(2, 4), 16);
-        const blue = parseInt(value.slice(4, 6), 16);
-        return (red * 299 + green * 587 + blue * 114) / 1000 > 156 ? '#101623' : '#ffffff';
-      };
-      const card = (x, y, width, height, title, color, options = {}) => {
-        const group = element('g', { 'aria-label': label(title) });
-        group.appendChild(element('rect', {
-          x: x - width / 2,
-          y: y - height / 2,
-          width,
-          height,
-          rx: 8,
-          fill: color,
-          stroke: color,
-          'stroke-width': 1
-        }));
-        group.appendChild(element('rect', {
-          x: x - width / 2,
-          y: y + height / 2 - 5,
-          width,
-          height: 5,
-          fill: 'rgba(255,255,255,0.44)'
-        }));
-        const icon = options.icon ? label(options.icon).slice(0, 2) : '';
-        if (icon) {
-          const iconText = element('text', {
-            x: x - width / 2 + 32,
-            y,
-            fill: contrast(color),
-            'font-size': 28,
-            'text-anchor': 'middle',
-            'dominant-baseline': 'middle',
-            'font-family': '"Apple Color Emoji", "Segoe UI Emoji", sans-serif'
-          });
-          iconText.textContent = icon;
-          group.appendChild(iconText);
+
+        if (noteEl) noteEl.textContent = String(forestData.center.note || '');
+
+        var W = 1280, H = 760, cx = 640, cy = 380;
+        var branchDist = 175, leafDist = 310;
+        var NS = 'http://www.w3.org/2000/svg';
+
+        function mk(tag, attrs) {
+          var el = document.createElementNS(NS, tag);
+          for (var k in attrs) el.setAttribute(k, attrs[k]);
+          return el;
         }
-        addLines(group, wrap(title, options.lineChars || 8), x + (icon ? 14 : 0), y, {
-          fill: options.textColor || contrast(color),
-          size: options.size || 16,
-          lineHeight: options.lineHeight || 20,
-          weight: options.weight || '700'
+
+        // 中心圆
+        svg.appendChild(mk('circle', {cx:cx, cy:cy, r:90, fill:'#1a2db5', stroke:'#5b7dff', 'stroke-width':3}));
+        svg.appendChild(mk('circle', {cx:cx, cy:cy, r:80, fill:'none', stroke:'rgba(255,255,255,0.1)', 'stroke-width':1}));
+
+        // 中心文字（自动换行）
+        var title = forestData.center.title || '核心关注';
+        var half = Math.ceil(title.length / 2);
+        var lines = title.length > 6 ? [title.slice(0, half), title.slice(half)] : [title];
+        lines.forEach(function(line, i) {
+          var t = mk('text', {x:cx, y:cy + (i - (lines.length-1)/2)*24, fill:'#ffffff',
+            'font-size': '21', 'font-weight':'800', 'text-anchor':'middle', 'dominant-baseline':'middle',
+            'font-family':'Microsoft YaHei, PingFang SC, sans-serif'});
+          t.textContent = line;
+          svg.appendChild(t);
         });
-        return group;
-      };
-      const centerNode = (x, y, title) => {
-        const group = element('g', { 'aria-label': label(title) });
-        group.appendChild(element('circle', {
-          cx: x,
-          cy: y,
-          r: 102,
-          fill: '#2039d7',
-          stroke: '#6a8aff',
-          'stroke-width': 3
-        }));
-        group.appendChild(element('circle', {
-          cx: x,
-          cy: y,
-          r: 92,
-          fill: 'none',
-          stroke: 'rgba(255,255,255,0.16)',
-          'stroke-width': 1
-        }));
-        addLines(group, wrap(title, 7), x, y, {
-          fill: '#ffffff',
-          size: 22,
-          lineHeight: 27,
-          weight: '800'
+
+        if (!forestData.branches || !forestData.branches.length) return;
+
+        var branches = forestData.branches, n = branches.length;
+
+        branches.forEach(function(branch, i) {
+          var angle = (i / n) * 2 * Math.PI - Math.PI / 2;
+          var color = branch.color || '#5b8cff';
+          var bx = cx + Math.cos(angle) * branchDist;
+          var by = cy + Math.sin(angle) * branchDist;
+
+          // 连线：中心 → 分支
+          svg.appendChild(mk('line', {x1:cx, y1:cy, x2:bx, y2:by,
+            stroke:color, 'stroke-width':'5', 'stroke-linecap':'round', 'stroke-opacity':'0.5'}));
+
+          // 分支卡
+          var bw = 180, bh = 50;
+          svg.appendChild(mk('rect', {x:bx-bw/2, y:by-bh/2, width:bw, height:bh, rx:'8', fill:color}));
+          svg.appendChild(mk('rect', {x:bx-bw/2, y:by+bh/2-5, width:bw, height:'5', rx:'2',
+            fill:'rgba(255,255,255,0.3)'}));
+
+          // 分支图标
+          if (branch.icon) {
+            var ic = mk('text', {x:bx-bw/2+24, y:by+1, fill:'#101623', 'font-size':'24',
+              'text-anchor':'middle', 'dominant-baseline':'middle',
+              'font-family':'Apple Color Emoji, Segoe UI Emoji, sans-serif'});
+            ic.textContent = branch.icon;
+            svg.appendChild(ic);
+          }
+
+          // 分支标题
+          var bt = mk('text', {x:bx + (branch.icon ? 18 : 0), y:by+1, fill:'#101623',
+            'font-size':'16', 'font-weight':'700', 'text-anchor':'middle', 'dominant-baseline':'middle',
+            'font-family':'Microsoft YaHei, PingFang SC, sans-serif'});
+          bt.textContent = branch.title || '';
+          svg.appendChild(bt);
+
+          // 叶子话题
+          if (branch.topics && branch.topics.length) {
+            var lc = branch.topics.length;
+            var spread = Math.min(Math.PI / 2.2, Math.PI / (lc + 1) * 2);
+            var startA = angle - spread / 2;
+
+            branch.topics.forEach(function(topic, ti) {
+              var la = startA + (ti / Math.max(1, lc - 1)) * spread;
+              var lx = cx + Math.cos(la) * leafDist;
+              var ly = cy + Math.sin(la) * leafDist;
+
+              svg.appendChild(mk('line', {x1:bx, y1:by, x2:lx, y2:ly,
+                stroke:color, 'stroke-width':'2.5', 'stroke-linecap':'round', 'stroke-opacity':'0.35'}));
+
+              var lw = 154, lh = 36;
+              svg.appendChild(mk('rect', {x:lx-lw/2, y:ly-lh/2, width:lw, height:lh, rx:'6',
+                fill:color, 'fill-opacity':'0.7'}));
+
+              var lt = mk('text', {x:lx, y:ly+1, fill:'#101623', 'font-size':'13', 'font-weight':'600',
+                'text-anchor':'middle', 'dominant-baseline':'middle',
+                'font-family':'Microsoft YaHei, PingFang SC, sans-serif'});
+              lt.textContent = topic;
+              svg.appendChild(lt);
+            });
+          }
         });
-        return group;
-      };
-      const center = forestData && forestData.center ? forestData.center : {};
-      const branches = Array.isArray(forestData && forestData.branches)
-        ? forestData.branches.slice(0, 6).filter((branch) => branch && branch.title)
-        : [];
-
-      if (!branches.length) {
-        forest.closest('.section').hidden = true;
-        return;
-      }
-
-      forest.replaceChildren();
-      const width = 1280;
-      const height = 760;
-      const centerX = width / 2;
-      const centerY = height / 2;
-      if (note) note.textContent = String(center.note || '群聊长期关注');
-
-      const layout = branches.map((branch, index) => {
-        const angle = ((-140 + (360 * index) / branches.length) * Math.PI) / 180;
-        const color = branch.color || palette[index % palette.length];
-        const branchX = centerX + Math.cos(angle) * 225;
-        const branchY = centerY + Math.sin(angle) * 225;
-        const topics = Array.isArray(branch.topics) ? branch.topics.slice(0, 6) : [];
-        return { branch, angle, color, branchX, branchY, topics };
-      });
-
-      layout.forEach(({ angle, color, branchX, branchY, topics }) => {
-        forest.appendChild(element('path', {
-          d: `M ${centerX + Math.cos(angle) * 92} ${centerY + Math.sin(angle) * 92} L ${branchX} ${branchY}`,
-          fill: 'none',
-          stroke: color,
-          'stroke-width': 9,
-          'stroke-linecap': 'round',
-          'stroke-opacity': 0.82
-        }));
-
-        topics.forEach((topic, topicIndex) => {
-          const offset = (topicIndex - (topics.length - 1) / 2) * (topics.length > 4 ? 62 : 82);
-          const perpendicularX = -Math.sin(angle);
-          const perpendicularY = Math.cos(angle);
-          const rawLeafX = branchX + Math.cos(angle) * 150 + perpendicularX * offset;
-          const rawLeafY = branchY + Math.sin(angle) * 150 + perpendicularY * offset;
-          const leafX = Math.max(118, Math.min(width - 118, rawLeafX));
-          const leafY = Math.max(42, Math.min(height - 42, rawLeafY));
-          forest.appendChild(element('path', {
-            d: `M ${branchX} ${branchY} L ${leafX} ${leafY}`,
-            fill: 'none',
-            stroke: color,
-            'stroke-width': 7,
-            'stroke-linecap': 'round',
-            'stroke-opacity': 0.74
-          }));
-        });
-      });
-
-      layout.forEach(({ branch, angle, color, branchX, branchY, topics }) => {
-        topics.forEach((topic, topicIndex) => {
-          const offset = (topicIndex - (topics.length - 1) / 2) * (topics.length > 4 ? 62 : 82);
-          const perpendicularX = -Math.sin(angle);
-          const perpendicularY = Math.cos(angle);
-          const rawLeafX = branchX + Math.cos(angle) * 150 + perpendicularX * offset;
-          const rawLeafY = branchY + Math.sin(angle) * 150 + perpendicularY * offset;
-          const leafX = Math.max(118, Math.min(width - 118, rawLeafX));
-          const leafY = Math.max(42, Math.min(height - 42, rawLeafY));
-          forest.appendChild(card(leafX, leafY, 190, 58, topic, color, {
-            size: 15,
-            lineChars: 9,
-            lineHeight: 18
-          }));
-        });
-        forest.appendChild(card(branchX, branchY, 224, 72, branch.title, color, {
-          icon: branch.icon,
-          size: 19,
-          lineChars: 8,
-          lineHeight: 22,
-          weight: '800'
-        }));
-      });
-
-      forest.appendChild(centerNode(centerX, centerY, center.title || '群聊核心关注'));
+      } catch(e) { console.warn('话题森林渲染失败:', e); }
     })();
 
-    if (window.WordCloud) {
-      WordCloud(document.getElementById('cloud'), {
-        list: words,
-        gridSize: 10,
-        weightFactor: 3,
-        fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
-        backgroundColor: 'rgba(0,0,0,0)',
-        rotateRatio: 0.35,
-        minSize: 16,
-        shrinkToFit: true,
-        drawOutOfBound: false,
-        color: function () {
-          const colors = [
-            '#4de2ff',
-            '#7b61ff',
-            '#5b8cff',
-            '#9c7dff',
-            '#6a5acd',
-            '#b39ddb'
-          ];
-
-          return colors[Math.floor(Math.random() * colors.length)];
-        }
-      });
-    }
+    (function renderWordCloud() {
+      try {
+      const cloudCanvas = document.getElementById('cloud');
+      if (window.WordCloud && cloudCanvas && words && words.length) {
+        WordCloud(cloudCanvas, {
+          list: words,
+          gridSize: 10,
+          weightFactor: 3,
+          fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
+          backgroundColor: 'rgba(0,0,0,0)',
+          rotateRatio: 0.35,
+          minSize: 16,
+          shrinkToFit: true,
+          drawOutOfBound: false,
+          color: function () {
+            const colors = ['#4de2ff','#7b61ff','#5b8cff','#9c7dff','#6a5acd','#b39ddb'];
+            return colors[Math.floor(Math.random() * colors.length)];
+          }
+        });
+      }
+      } catch(e) { console.warn('词云渲染失败:', e); }
+    })();
 
     (function renderTrend() {
+      try {
       const canvas = document.getElementById('trend');
       if (!canvas || !trendData || !trendData.length) return;
 
@@ -1318,16 +1234,25 @@
       ctx.fillStyle = '#8ea4d4';
       ctx.font = '12px "Microsoft YaHei", "PingFang SC", sans-serif';
       ctx.textAlign = 'center';
-      const labelStep = points.length <= 8 ? 1 : points.length <= 16 ? 2 : points.length <= 24 ? 3 : 4;
+      // 日报 → 按小时显示（约24点），周报/月报 → 按天显示
+      const isHourly = (reportType === '日报' || trendData.length >= 20);
+      let labelStep;
+      if (isHourly) {
+        labelStep = Math.max(1, Math.floor(points.length / 5)); // 显示约5-6个标签
+      } else {
+        labelStep = points.length <= 8 ? 1 : points.length <= 16 ? 2 : points.length <= 24 ? 3 : Math.ceil(points.length / 7);
+      }
       points.forEach((point, index) => {
         if (index === 0 || index === points.length - 1 || index % labelStep === 0) {
-          ctx.fillText(point.label, point.x, h - 12);
+          const label = isHourly ? point.label.replace(':00', '时') : point.label;
+          ctx.fillText(label, point.x, h - 12);
         }
       });
 
       ctx.textAlign = 'right';
       ctx.fillText(String(maxY), leftPad - 10, topPad + 4);
       ctx.fillText(String(minY), leftPad - 10, h - bottomPad + 4);
+      } catch(e) { console.warn('趋势图渲染失败:', e); }
     })();
   </script>
 </body>
