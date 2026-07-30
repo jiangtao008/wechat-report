@@ -517,7 +517,7 @@ else:
 # ============================================================
 # Save
 # ============================================================
-output_path = "/Users/jiangtao/ai/wx周报/group-6/长沙长沙（返湘1群）_20260730.html"
+output_path = "/Users/jiangtao/ai/wx周报/report/长沙长沙（返湘1群）/长沙长沙（返湘1群）_20260730.html"
 with open(output_path, 'w') as f:
     f.write(html)
 

@@ -6,13 +6,13 @@
       "files": [
         {
           "title": "Tesla特特特能说_群聊日报_20260729",
-          "file": "group-1/Tesla特特特能说_20260729.html",
-          "meta": "group-1 · Tesla特特特能说_20260729.html"
+          "file": "report/Tesla特特特能说/Tesla特特特能说_20260729.html",
+          "meta": "Tesla特特特能说 · 2026-07-29"
         },
         {
           "title": "Tesla特特特能说_群聊周报",
-          "file": "group-1/Tesla特特特能说_群聊周报.html",
-          "meta": "group-1 · Tesla特特特能说_群聊周报.html"
+          "file": "report/Tesla特特特能说/Tesla特特特能说_群聊周报.html",
+          "meta": "Tesla特特特能说 · 群聊周报"
         }
       ]
     },
@@ -21,8 +21,8 @@
       "files": [
         {
           "title": "长沙正能量搭子群_群聊周报",
-          "file": "group-2/长沙正能量搭子群_周报.html",
-          "meta": "group-2 · 长沙正能量搭子群_周报.html"
+          "file": "report/长沙正能量搭子群/长沙正能量搭子群_周报.html",
+          "meta": "长沙正能量搭子群 · 周报"
         }
       ]
     },
@@ -31,8 +31,8 @@
       "files": [
         {
           "title": "湖南露营学院_群聊周报",
-          "file": "group-3/湖南露营学院_群聊周报.html",
-          "meta": "group-3 · 湖南露营学院_群聊周报.html"
+          "file": "report/湖南露营学院/湖南露营学院_群聊周报.html",
+          "meta": "湖南露营学院 · 群聊周报"
         }
       ]
     },
@@ -41,8 +41,8 @@
       "files": [
         {
           "title": "保利北中心G区业主群_群聊周报",
-          "file": "group-4/保利北中心G区业主群_20260729.html",
-          "meta": "group-4 · 保利北中心G区业主群_20260729.html"
+          "file": "report/保利北中心G区业主群/保利北中心G区业主群_20260729.html",
+          "meta": "保利北中心G区业主群 · 2026-07-29"
         }
       ]
     },
@@ -51,18 +51,18 @@
       "files": [
         {
           "title": "星城神仙小分队_群聊周报",
-          "file": "group-5/星城神仙小分队_20260729.html",
-          "meta": "group-5 · 星城神仙小分队_20260729.html"
+          "file": "report/星城神仙小分队/星城神仙小分队_20260729.html",
+          "meta": "星城神仙小分队 · 2026-07-29"
         }
       ]
     },
     {
-      "name": "group-6",
+      "name": "长沙长沙（返湘1群）",
       "files": [
         {
           "title": "长沙长沙（返湘1群）",
-          "file": "group-6/长沙长沙（返湘1群）_20260730.html",
-          "meta": "group-6 · 2026-07-30"
+          "file": "report/长沙长沙（返湘1群）/长沙长沙（返湘1群）_20260730.html",
+          "meta": "长沙长沙（返湘1群） · 2026-07-30"
         }
       ]
     }
