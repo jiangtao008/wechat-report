@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tesla特特特能说 群聊动态报告</title>
+  <title>风林的Ai交流群 群聊动态报告</title>
   <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.3/src/wordcloud2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js';document.head.appendChild(s)"></script>
   <style>
     :root {
       --bg: #050816;
@@ -333,13 +334,216 @@
       font-size: 12px;
     }
 
+    .quote-item {
+      margin-bottom: 18px;
+      padding: 22px 24px;
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(77, 226, 255, 0.07), transparent 40%),
+        linear-gradient(180deg, rgba(13, 22, 46, 0.92), rgba(8, 14, 30, 0.96));
+      border: 1px solid rgba(157, 181, 230, 0.22);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .quote-item::before {
+      content: "❝";
+      position: absolute;
+      top: -14px;
+      right: 8px;
+      font-size: 88px;
+      line-height: 1;
+      color: rgba(77, 226, 255, 0.14);
+      font-family: Georgia, serif;
+      pointer-events: none;
+    }
+
+    .quote-text {
+      display: block;
+      position: relative;
+      color: #f6fbff;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.7;
+      letter-spacing: 0.02em;
+      padding-left: 18px;
+      border-left: 4px solid var(--cyan);
+      border-left-color: rgba(77, 226, 255, 0.55);
+      box-shadow: -6px 0 18px -10px rgba(77, 226, 255, 0.35);
+    }
+
+    .quote-speaker {
+      display: block;
+      margin-top: 10px;
+      text-align: right;
+      color: var(--cyan);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .quote-speaker::before {
+      content: "—— ";
+      color: var(--muted);
+    }
+
+    .quote-scene {
+      display: block;
+      margin-bottom: 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.75;
+    }
+
+    .quote-scene-label,
+    .quote-verdict-label {
+      color: #9db5e6;
+      font-weight: 700;
+    }
+
+    .quote-verdict {
+      display: block;
+      margin-top: 10px;
+      color: var(--green);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .quote-style {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 3px 12px;
+      border-radius: 999px;
+      background: rgba(255, 215, 135, 0.10);
+      border: 1px solid rgba(255, 215, 135, 0.28);
+      color: #ffd787;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .relationship-card {
+      padding: 18px;
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(77, 226, 255, 0.06), transparent 44%),
+        linear-gradient(180deg, rgba(13, 22, 46, 0.92), rgba(8, 14, 30, 0.96));
+      border: 1px solid rgba(157, 181, 230, 0.22);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      overflow: hidden;
+    }
+
+    .relationship-canvas {
+      display: block;
+      width: 100%;
+      min-height: 560px;
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at center, rgba(77, 226, 255, 0.06), transparent 36%),
+        rgba(255, 255, 255, 0.01);
+      border: 1px solid rgba(157, 181, 230, 0.16);
+      cursor: grab;
+    }
+
+    .relationship-canvas:active {
+      cursor: grabbing;
+    }
+
+    .relationship-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 14px 4px 4px;
+      justify-content: center;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(10, 18, 38, 0.7);
+      border: 1px solid rgba(90, 150, 255, 0.15);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .legend-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .rel-tooltip {
+      position: absolute;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(10, 18, 42, 0.94);
+      border: 1px solid rgba(90, 150, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      color: #eef5ff;
+      font-size: 13px;
+      line-height: 1.6;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 100;
+      max-width: 240px;
+      backdrop-filter: blur(8px);
+    }
+
+    .rel-tooltip strong {
+      color: #ffffff;
+    }
+
+    .stars-chart-container {
+      margin-top: 22px;
+      padding: 18px;
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(59, 240, 195, 0.06), transparent 44%),
+        linear-gradient(180deg, rgba(13, 22, 46, 0.88), rgba(8, 14, 30, 0.94));
+      border: 1px solid rgba(90, 150, 255, 0.16);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      overflow: hidden;
+    }
+
+    .stars-chart-container svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+    }
+
+    .forest-section h2::before {
+      display: none;
+    }
+
+    .forest-section h2 {
+      gap: 12px;
+      font-size: 25px;
+    }
+
+    .forest-title-icon {
+      display: inline-grid;
+      width: 38px;
+      height: 38px;
+      place-items: center;
+      border-radius: 12px;
+      background: rgba(77, 226, 255, 0.12);
+      border: 1px solid rgba(77, 226, 255, 0.25);
+      font-size: 22px;
+    }
+
     .topic-forest-card {
       padding: 18px;
       border-radius: 20px;
       background:
-        radial-gradient(circle at 50% 50%, rgba(77, 226, 255, 0.10), transparent 42%),
+        radial-gradient(circle at 50% 50%, rgba(77, 226, 255, 0.08), transparent 44%),
         linear-gradient(180deg, rgba(13, 22, 46, 0.92), rgba(8, 14, 30, 0.96));
-      border: 1px solid rgba(90, 150, 255, 0.18);
+      border: 1px solid rgba(157, 181, 230, 0.22);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
       overflow: hidden;
     }
@@ -349,7 +553,7 @@
       justify-content: space-between;
       align-items: baseline;
       gap: 12px;
-      margin: 2px 4px 10px;
+      margin: 2px 4px 12px;
       flex-wrap: wrap;
     }
 
@@ -368,14 +572,12 @@
     .topic-forest {
       display: block;
       width: 100%;
-      min-height: 440px;
+      min-height: 510px;
       border-radius: 16px;
       background:
-        linear-gradient(rgba(77, 226, 255, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(77, 226, 255, 0.035) 1px, transparent 1px),
-        rgba(255, 255, 255, 0.015);
-      background-size: 24px 24px;
-      border: 1px solid rgba(90, 150, 255, 0.12);
+        radial-gradient(circle at center, rgba(77, 226, 255, 0.08), transparent 36%),
+        rgba(255, 255, 255, 0.012);
+      border: 1px solid rgba(157, 181, 230, 0.16);
     }
 
     .word-cloud-card {
@@ -464,376 +666,510 @@
   <div class="container">
     <div class="hero">
       <div class="eyebrow">群聊情报报告</div>
-      <h1>Tesla特特特能说 群聊周报（2026.07.21 14:35 — 2026.07.28 14:19）</h1>
-      <div class="subtitle">8 天、4,426 条有效发言：从家充跳闸聊到长沙方言，从啤酒补货聊到城市产业，群聊像一台永不熄火的多线程发动机。</div>
+      <h1>风林的Ai交流群 群聊周报（2026-07-24 ~ 2026-07-31）</h1>
+      <div class="subtitle">这是一个把「AI 就是生产力」挂在嘴边、把「额度告急」挂在心上的技术流聊天室。一周下来，群友在 Codex 重置、手机号封禁、模型真假鉴定和长鑫打新之间反复横跳，顺便把相亲、美食和羽毛球也卷出了新高度。</div>
     </div>
 
     <div class="section">
       <h2>区间总览</h2>
       <div class="summary-grid">
-        <div class="summary-card"><span class="summary-label">有效发言</span><span class="summary-value">4,426</span></div>
-<div class="summary-card"><span class="summary-label">活跃参与者</span><span class="summary-value">79</span></div>
-<div class="summary-card"><span class="summary-label">文本消息</span><span class="summary-value">3,170</span></div>
-<div class="summary-card"><span class="summary-label">峰值日</span><span class="summary-value">7/22 · 908</span></div>
-        <div class="trend-card">
-<div class="trend-head"><span class="trend-title">每日发言趋势</span><span>7 月 22 日达到区间峰值</span></div>
-<canvas id="trend" class="trend-canvas" width="860" height="260"></canvas>
-<div class="trend-note">按已识别群成员消息统计，排除 34 条系统消息与 60 条无法确认发言人的记录。</div>
+        
+<div class="summary-card">
+  <span class="summary-label">总消息数</span>
+  <span class="summary-value">4505</span>
 </div>
+<div class="summary-card">
+  <span class="summary-label">文本消息</span>
+  <span class="summary-value">3264</span>
+</div>
+<div class="summary-card">
+  <span class="summary-label">活跃参与人数</span>
+  <span class="summary-value">70</span>
+</div>
+<div class="summary-card">
+  <span class="summary-label">日均消息</span>
+  <span class="summary-value">644</span>
+</div>
+
+        
+<div class="trend-card">
+  <div class="trend-head">
+    <span class="trend-title">发言时段分布</span>
+    <span>按天统计</span>
+  </div>
+  <canvas id="trend" class="trend-canvas"></canvas>
+  <div class="trend-note">消息量在 07/28 达到峰值（1120 条），当天围绕 Codex 重置、giffgaff 封号与飞书/豆包合并的消息集中爆发；07/26 为周末低谷（151 条）。</div>
+</div>
+
       </div>
-      <div class="summary-line"><span class="summary-line-label">高频情绪</span>调侃、围观、实用排障、消费兴奋与酒后反悔并存。汽车问题负责提供主线，吃喝与关系八卦负责不断开枝散叶；本周最强能力不是保持严肃，而是把严肃问题聊到能执行，再顺手留下一句梗。</div>
+      
+<div class="summary-line">
+  <span class="summary-line-label">高频情绪：</span>⚡ 额度焦虑 🤑 白嫖狂欢 😂 互相拆台 🔥 群聊吃瓜 🏸 运动互搏
+</div>
+
     </div>
 
     <div class="section">
       <h2>群聊热点话题</h2>
       <ul>
-        <li>
-<strong class="topic-title">家用充电桩连续剧：从半夜跳闸到 7kW / 11kW 大辩论</strong>
-<span class="topic-act">第一幕：故障在深夜点火</span>
-<span class="topic-step">7 月 23 日深夜，st 连续报告空气开关跳闸：昨天发生、今天复现，长途出发前连睡觉都不踏实。</span>
-<span class="topic-step">tsla-特烦恼03530 先判断高温与线径，柒齊继续追查地线、电压和电流，Mr.Ling 则把视线拉到功率规格。</span>
-<span class="topic-step">临时方案是把电流降到 24A，正式方案是联系安装师傅检修；讨论从情绪吐槽迅速切换成现场会诊。</span>
-<span class="topic-act">第二幕：功率规格把群聊拧成技术论坛</span>
-<span class="topic-step">Mr.Ling 提出特斯拉可申请 11kW 三相电，其他人基于湖南实际办理经验认为原则上多为 7kW，双方开始对营业厅流程逐条核对。</span>
-<span class="topic-step">车型说明、供电所表格、小区条件、线路长度和三相稳定性被一件件摆上桌，结论不是一句“能装”或“不能装”，而是看现场和办理口径。</span>
-<span class="topic-step">次日又扩展到三代桩、赛博充、40 米安装权益、二手转让价与质保期限，LL 当场完成了一轮购买决策。</span>
-<span class="topic-act">第三幕：保险、质保与维修收口</span>
-<span class="topic-step">1211🍪追问充电桩保险，刘晨熙补充厂家责任险和车险附加方案，“到底需不需要单买”终于有了可执行判断。</span>
-<span class="topic-step">7 月 25 日维修师傅确认主要问题在空开与电流负荷，且尚在质保期，整场连续剧从“想换油车”收束到“换掉损耗件”。</span>
-<span class="topic-step">群里真正有用的地方也在这里：先集体骂两句，再把功率、线路、保险、质保和报修路径补齐。</span>
-<div class="highlight-quote">
-<span class="highlight-text">点睛之笔：“这屁电车真的受够了。”</span>
-<span class="highlight-author">— st</span>
-</div>
-<span class="ai-note">AI 锐评：一只跳闸空开，成功召唤出半个供电所。车主的情绪先跳闸，群友的排障链路倒一直在线。</span>
-<span class="topic-participants">主要参与者：st、tsla-特烦恼03530、Mr.Ling、柒齊、刘晨熙、LL、孔巍</span>
-</li>
+        
 <li>
-<strong class="topic-title">特斯拉使用账本：屏幕黑、续航掉、置换痒，最后还是继续开</strong>
-<span class="topic-act">第一幕：清晨黑屏唤醒“重启大法”</span>
-<span class="topic-step">7 月 24 日早上，st 上车遇到屏幕和空调都没反应；周爆护表示自己也碰到过，张凯直接祭出车圈通用药方“重启大法”。</span>
-<span class="topic-step">短暂故障很快和前一晚充电问题串联，st 把车叫作“难伺候的大爹”，情绪从担心升级到对整个电车生活的疲惫。</span>
-<span class="topic-act">第二幕：两年成本与续航焦虑对账</span>
-<span class="topic-step">刘晨熙给出两年 4.4 万公里的实账：除四轮定位和滤芯外几乎没额外支出，和此前宝马的维护成本形成鲜明对比。</span>
-<span class="topic-step">但账面省心不等于心理没事：续航稳定在 488 公里、标续跑长途仍焦虑，话题立刻转向 Model Y 置换长续航版本要补多少钱。</span>
-<span class="topic-step">二胎家庭空间、600 公里目标续航、油车无感与钱包压力同时出现，换车冲动被现实预算一脚踩住。</span>
-<span class="topic-act">第三幕：售后规则与新车围观</span>
-<span class="topic-step">7 月 28 日 qin 追问代步车，Kerwin 解释常规保养、钣金中心和维修天数对代步车资格的影响。</span>
-<span class="topic-step">话题末尾又被上汽 AUDI 新款电车吸走注意力：车主刚抱怨完旧车，眼睛已经很诚实地看向下一台。</span>
-<div class="highlight-quote">
-<span class="highlight-text">点睛之笔：“除了几个滤芯，2 年了没花什么其他钱。”</span>
-<span class="highlight-author">— 刘晨熙</span>
-</div>
-<span class="ai-note">AI 锐评：电车群的经典悖论：嘴上“受够了”，账单一摊又舍不得走。续航焦虑和低养护成本，像一对长期分不了手的冤家。</span>
-<span class="topic-participants">主要参与者：st、刘晨熙、tsla-特烦恼03530、周爆护、Kerwin、qin、张凯</span>
+  <span class="topic-title">🔄 Codex 额度大战：重置、蹬车与玻利维亚的诱惑</span>
+  <span class="topic-act">第一幕：周五的额度惊魂</span>
+  <span class="topic-step">07-24 张硕发现一下午就把一周额度烧得只剩零头，感慨「要是人也能控制额度就好了，gpt 干一天，歇 6 天」，风林-杨当场补刀「你老板也不会让你这么歇」</span>
+  <span class="topic-step">群里围绕 100 刀/200 刀订阅、玻利维亚区 800 块「爽玩一月」、重置银行额度反复横跳，张硕因为没安卓手机、没玻利维亚节点急得直挠头</span>
+  <span class="topic-act">第二幕：重置大甩卖</span>
+  <span class="topic-step">tibo 宣布重置的消息一出，全群集体「开蹬」「速蹬」，风林-杨喊出「开并发 + 闪电 + gpt5.6s + 最高思考，一个小时就榨干」</span>
+  <span class="topic-step">Lemon-学生盘算起代充生意「每一次活动都能有二三十个人，每个人 400 块钱」，把白嫖和商机连成一串</span>
+  <span class="topic-step">张硕从「我还没用啊，还在节省」到「以后就直接用完算了」，完成额度心态的三级跳</span>
+  <span class="topic-act">第三幕：电量归零文学</span>
+  <span class="topic-step">每天清晨都有人在问「重置了吗」，张硕总结「我的速度是它 5 小时重置一次」</span>
+  <span class="topic-step">右下角的卷毛先生「跑个 goal，出去茶歇」，把额度焦虑玩成了上班摸鱼新姿势</span>
+  <div class="highlight-quote">
+    <span class="highlight-text">「要是人也能控制额度就好了，gpt 干一天，歇 6 天」</span>
+    <span class="highlight-author">— 张硕</span>
+  </div>
+  <span class="ai-note">💬 AI 锐评：一群月薪六千的人，操着月薪六万才养得起的额度焦虑。嘴上喊着「不花钱就是省钱」，手上比谁蹬得都快——重置的消息一落地，全群的执行力比上班开会高一个量级。</span>
+  <span class="topic-participants">主要参与者：张硕、风林-杨、Lemon-学生、右下角的卷毛先生、星淇</span>
 </li>
+
 <li>
-<strong class="topic-title">夏日啤酒宇宙：口感辩论、山姆补货与“再也不喝了”循环</strong>
-<span class="topic-act">第一幕：从说唱丝滑切到啤酒测评</span>
-<span class="topic-step">7 月 21 日的 Jony J 和中文说唱还没聊完，话题便被晚饭和冰啤酒接管；保拉纳、喜力、三宝乐、麒麟轮番上桌。</span>
-<span class="topic-step">tsla-特烦恼03530 偏爱不苦、清爽的保拉纳与喜力，zhouu 认为喜力的苦能把生活也带苦，颖则保持“不喝酒所以都难喝”的清醒旁观。</span>
-<span class="topic-step">国产、日系、德式拉格的原料和口感差异被拆开讨论，价格也被算到每瓶七元是不是消费上限。</span>
-<span class="topic-act">第二幕：稀缺补货变成群体寻宝</span>
-<span class="topic-step">7 月 28 日，山姆少量补货引发线上抢购、线下巡店和“看见帮我抱一箱”的互助链。</span>
-<span class="topic-step">xszyxx 追问口感与开罐喷泡，tsla-特烦恼03530 解释日系啤酒的柔和、德式拉格的苦味，还认真研究如何冰透后开罐不喷。</span>
-<span class="topic-step">这段讨论的参与门槛极低：有人负责买，有人负责喝，有人负责把“缺货”说成投资机会。</span>
-<span class="topic-act">第三幕：宿醉宣言只保鲜二十分钟</span>
-<span class="topic-step">st、Jemmy 和张凯上午齐声“再也不喝酒了”，有人冰水下肚更难受，有人回忆半斤断片。</span>
-<span class="topic-step">不到中午，群里又出现“开喝”“好自在”和新一轮补货计划；戒酒在这里不是决定，只是酒后固定台词。</span>
-<div class="highlight-quote">
-<span class="highlight-text">点睛之笔：“就是喝起来有点觉得生活也很苦。”</span>
-<span class="highlight-author">— zhouu</span>
-</div>
-<span class="ai-note">AI 锐评：他们不是在喝酒，是在做一场持续八天的横向测评。唯一始终缺货的不是啤酒，而是第二天早上的自制力。</span>
-<span class="topic-participants">主要参与者：tsla-特烦恼03530、st、zhouu、颖、龚律师、xszyxx、张凯、Jemmy</span>
+  <span class="topic-title">💳 giffgaff 封号连锁：海外手机号的「黄金时代体验卡」到期</span>
+  <span class="topic-act">第一幕：封号通知轰炸</span>
+  <span class="topic-step">07-27 星淇率先哀嚎「gg 要封号」「我才用俩月啊，啥也没整」，风林-杨落井下石「阿硕才弄好就开始封号了？」</span>
+  <span class="topic-step">安亦1 收到邮件「完犊子咯，这下 gg 得赚翻」，Lemon-学生「瑟瑟发抖」忙着把卡拔出来</span>
+  <span class="topic-act">第二幕：黄金时代体验卡文学</span>
+  <span class="topic-step">07-29 安亦1 仿写星淇的「合肥黄金时代」段子，写出一篇《这是他成年以来最短的一个夏天》：办 giffgaff、注册 ChatGPT、充 Pro 20x，「人类黄金时代体验卡到期了」</span>
+  <span class="topic-step">群友集体破防又集体玩梗，把一场封号硬生生写成了赛博移民文学</span>
+  <span class="topic-act">第三幕：逃生方案大乱斗</span>
+  <span class="topic-step">携号转网、退钱、买美版 iPhone、接码平台、saily 卡，各路方案轮番上场，群友互相当白鼠</span>
+  <span class="topic-step">张硕自封「行业冥灯」：搞 cc 封 cc，搞 gpt 连苹果 id 都不让注册，刚搞好 gg 号 gg 也没了</span>
+  <span class="topic-step">风林-杨劝「把一次性验证打开」，最终共识是「正经花钱的不封，偷渡的早晚凉」</span>
+  <div class="highlight-quote">
+    <span class="highlight-text">「这是他成年以来最短的一个夏天……有种人类黄金时代体验卡到期了的感觉」</span>
+    <span class="highlight-author">— 安亦1</span>
+  </div>
+  <span class="ai-note">💬 AI 锐评：一场英国虚拟运营商的封号，硬被群友演成了赛博版「别了，大不列颠」。昨天还在群里吹 giffgaff 便宜好用，今天就把悼词写得像模像样——这届网友破防来得快去得也快，转身已经在研究下一个接码平台。</span>
+  <span class="topic-participants">主要参与者：安亦1、张硕、星淇、Lemon-学生、风林-杨</span>
 </li>
+
 <li>
-<strong class="topic-title">婚恋奇闻审判庭：法律、道德与朋友怪圈轮番上场</strong>
-<span class="topic-act">第一幕：一则极端家庭事件点燃讨论</span>
-<span class="topic-step">7 月 22 日傍晚，群友围绕一桩丈夫死亡、孩子身世与财产问题的事件展开追问，情绪从震惊迅速转向“还能不能追偿”。</span>
-<span class="topic-step">龚律师从继承与赔偿角度给出有限路径，颖强调选错对象的代价，“我”则用一句冷面吐槽把法律无法处理的部分送去了阴间法庭。</span>
-<span class="topic-step">大家的共识是当事人遭遇极端不公，但对死后财产、孩子和责任如何处理，仍只能在事实不完整的前提下谨慎判断。</span>
-<span class="topic-act">第二幕：群友故事把案情越讲越复杂</span>
-<span class="topic-step">斯文、、败类随后讲起朋友与未离婚对象交往三年、反复怀孕和单位举报的经历，群里先听故事，后迅速把矛头对准那位朋友。</span>
-<span class="topic-step">“该补偿”“为什么三年没发现”“谁的问题更大”形成连续交锋；复述者试图解释细节，听众则用“渣男”完成集体判词。</span>
-<span class="topic-step">“我”进一步追问这是否又是上一回“绿帽洁癖”朋友圈，让讨论从个案上升成对信息来源的幽默质检。</span>
-<span class="topic-act">第三幕：从八卦转向机会与能力</span>
-<span class="topic-step">同一条讨论线最后拐到老板与高学历秘书：复旦研究生在项目机会和自身能力共同作用下独立发展、上海买房。</span>
-<span class="topic-step">群里承认“跟对人”重要，也没有抹掉“项目接得住”的能力门槛；这段意外成了整场八卦中最像正经职业讨论的落点。</span>
-<div class="highlight-quote">
-<span class="highlight-text">点睛之笔：“这事情，归阎王判。”</span>
-<span class="highlight-author">— 我</span>
-</div>
-<span class="ai-note">AI 锐评：群聊一度同时拥有法庭、伦理委员会和脱口秀席位。事实越复杂，判词越短；真正靠谱的部分，反而是有人及时提醒别把瓜当判决书。</span>
-<span class="topic-participants">主要参与者：斯文、、败类、我、龚律师、颖、tsla-特烦恼03530、无花果大王、大颖呢🥦</span>
+  <span class="topic-title">🤖 Codex 端到端打工流：Goal、计划模式和 token 节能术</span>
+  <span class="topic-act">第一幕：Goal 模式把活全包了</span>
+  <span class="topic-step">右下角的卷毛先生「goal 一下说我要上线，跑完代码检查，把上线前要准备的配置全部列出来了」，虽然他的亚马逊服务器和域名都还没影</span>
+  <span class="topic-step">张硕四个项目同时开跑，不同模型分工执行，「我把思路整理出来，其他步骤我都在做决策」</span>
+  <span class="topic-act">第二幕：token 节能军备竞赛</span>
+  <span class="topic-step">Lemon-学生用「目标模式」让 Codex 爬聊天记录复盘，从 80 秒优化到 10 秒，把 token 消耗算成了一门手艺</span>
+  <span class="topic-step">张硕研究「任务拆分给小模型执行」，跟文森特讨论 AFK 自动化，还没摸清门道就先上了 4 个项目</span>
+  <span class="topic-step">想想亮出自己搓的鸿蒙原生 GPT 客户端，解决「鸿蒙手机没有 GPT 客户端」的痛点，全程 AI 代写</span>
+  <span class="topic-act">第三幕：工具的尽头是外包</span>
+  <span class="topic-step">workbuddy 被群友戏称「外包」，森岚「用 hy3 做了一个项目的完整设计，从商业模式到落地」</span>
+  <span class="topic-step">风林-杨总结「codex + gpt5.6 + ⚡ 现在就是巨强巨强的组合」</span>
+  <div class="highlight-quote">
+    <span class="highlight-text">「我把思路整理出来，其他步骤我都在做决策」</span>
+    <span class="highlight-author">— 张硕</span>
+  </div>
+  <span class="ai-note">💬 AI 锐评：本周的生产力军备竞赛已经卷到「如何让 AI 更省 AI 的钱」。张硕在 4 个项目间横跳，Lemon-学生在 token 计算器里精打细算，想想直接让 AI 给自己写客户端——每个人都以为自己是管理岗，实际上都是被额度追着跑的赛博监工。</span>
+  <span class="topic-participants">主要参与者：张硕、Lemon-学生、右下角的卷毛先生、想想、风林-杨</span>
 </li>
+
 <li>
-<strong class="topic-title">吃喝与出游地图：从粤菜争论一路导航到惠州海边和长沙鱼粉</strong>
-<span class="topic-act">第一幕：带娃出游先算体力，再选目的地</span>
-<span class="topic-step">群友围绕三亚、南澳岛、惠州、万宁和浏阳漂流交换经验，核心变量不是景色，而是请假、机票、赶海资源和带娃体力。</span>
-<span class="topic-step">zhouu 推荐巽寮湾与惠州冬季生活，小花甲补充团购房与亲子饮食，st 贡献孩子抓螃蟹到半夜的真实强度。</span>
-<span class="topic-step">最终形成的不是“最佳目的地”，而是分场景选择：短假近郊漂流，冬季家庭长住看惠州，海岛则要接受人多与高温。</span>
-<span class="topic-act">第二幕：粤菜与湘菜互不服气</span>
-<span class="topic-step">白切鸡、啫啫煲、潮汕牛肉、猪脚饭、叉烧和烧鹅被逐个报菜名，广东饮食支持者几乎靠菜单完成了火力覆盖。</span>
-<span class="topic-step">tsla-特烦恼03530 坚持长沙菜口味，L 用四天体验总结“第三天想辣椒、第四天不想吃”，zhouu 则承认第五天就想回来嗦粉。</span>
-<span class="topic-step">争论没有分出菜系冠军，却精准证明：新鲜感能撑四天，乡味从第五天开始接管胃。</span>
-<span class="topic-act">第三幕：本地店铺靠群友口碑流转</span>
-<span class="topic-step">观山咖啡、凤凰城鱼粉、万家丽鱼粉、四方坪大包厢和玉兰路炒饭反复出现，群聊承担了半个本地生活搜索引擎。</span>
-<span class="topic-step">Mr.Ling 用“信我不踩坑”推鱼粉，孔巍补充地理与口味选择，其他人负责追链接、约见面和提醒“最近下雨”。</span>
-<div class="highlight-quote">
-<span class="highlight-text">点睛之笔：“第五天我就想回来嗦粉了。”</span>
-<span class="highlight-author">— zhouu</span>
-</div>
-<span class="ai-note">AI 锐评：这群人的旅行攻略很诚实：景点只是背景，吃什么、娃累不累、车好不好停才是主线。所谓远方，最后都要接受一碗粉的召回。</span>
-<span class="topic-participants">主要参与者：zhouu、st、tsla-特烦恼03530、小花甲、颖、Mr.Ling、孔巍、L</span>
+  <span class="topic-title">🔍 中转站真假鉴定局：freemodel 到底是不是 GPT？</span>
+  <span class="topic-act">第一幕：0.05 的价格诱惑</span>
+  <span class="topic-step">风林-杨安利「麻豆科技」（sub2api）「20 块钱能刷一天」，文森特补一句「一天 5 块钱 5.6 畅饮」</span>
+  <span class="topic-step">柚子发现「现在居然还能 0.05」，Lemon-学生当场心动「0.05 让我都不想充 plus 了」</span>
+  <span class="topic-act">第二幕：套壳大侦探</span>
+  <span class="topic-step">张硕抛出一份 AI 鉴定报告：API 返回 model: gpt-5.6-sol，但 completion_tokens_details.reasoning_tokens 是 DeepSeek 系特征</span>
+  <span class="topic-step">群友用随机数测试、文生图风格比对（「5.6 不喜欢用那种圆角」）、「活没干完就先结束」等细节围攻真身</span>
+  <span class="topic-step">风林-杨最终定性「很国产风」「不会是 glm5.2 吧」</span>
+  <div class="highlight-quote">
+    <span class="highlight-text">「这个分析的深度来看，还是一个很一般的模型」</span>
+    <span class="highlight-author">— 张硕</span>
+  </div>
+  <span class="ai-note">💬 AI 锐评：花 0.05 想嫖正版 GPT，结果发现可能是「国产高仿」。群友人均侦探上身，从 token 字段验到圆角边框——这届消费者对套壳的警觉程度，比对自己手机号被封还上心。最后结论：便宜是真便宜，「是不是真 GPT」这个谜，可能连中转站长自己都说不清。</span>
+  <span class="topic-participants">主要参与者：风林-杨、张硕、文森特、柚子、森岚</span>
 </li>
+
 <li>
-<strong class="topic-title">身高、牛奶与运动：一场从育儿焦虑到生活方式的集体体检</strong>
-<span class="topic-act">第一幕：牛奶问题引出儿童身高</span>
-<span class="topic-step">大颖呢🥦从乳糖耐受、奶酪芝士和孩子身高说起，医生给出每天饮奶建议；Jemmy、st 和 tsla-特烦恼03530迅速加入家庭遗传与饮食经验。</span>
-<span class="topic-step">牛肉、牛奶、优质蛋白、生病频率和生长激素都被提到，但群里没有把任何单一食物神化成“长高按钮”。</span>
-<span class="topic-step">父母身高与个人身高被成批报出，严肃讨论很快被“斗破误我”和“直接打骨折长高”带偏，但核心焦虑始终清晰。</span>
-<span class="topic-act">第二幕：睡眠被推上第一优先级</span>
-<span class="topic-step">大颖呢🥦复述多次生长科就诊得到的共同意见：运动饮食是辅助，睡眠排第一，早睡早起比临时补品更关键。</span>
-<span class="topic-step">这个结论也在后续失眠讨论中反复回响：长途奔袭、饮酒、半夜醒来与黑眼圈，被群友用玩笑包装成了真实的恢复问题。</span>
-<span class="topic-act">第三幕：网球、羽毛球与补给方案</span>
-<span class="topic-step">刘晨熙分享网球和羽毛球的运动强度、宝矿力补给与 110 分钟实战，Summer、追问如何避免晕倒。</span>
-<span class="topic-step">群里给出的落点非常朴素：别空腹硬扛，补水补糖，体能不够就别把短视频里的运动强度当自己出厂设置。</span>
-<div class="highlight-quote">
-<span class="highlight-text">点睛之笔：“运动饮食都是辅助，排第一是睡眠。”</span>
-<span class="highlight-author">— 大颖呢🥦</span>
-</div>
-<span class="ai-note">AI 锐评：群聊能把医学问题聊成段子，但这次最有价值的结论反而最朴素：别迷信一瓶奶解决所有事，先把全家的作息从深夜群聊里救出来。</span>
-<span class="topic-participants">主要参与者：大颖呢🥦、Jemmy、tsla-特烦恼03530、st、刘晨熙、Summer、、颖</span>
+  <span class="topic-title">🏦 长鑫科技与合肥赌城：打新中签的城市级凡尔赛</span>
+  <span class="topic-act">第一幕：一签五千块的快乐</span>
+  <span class="topic-step">SayHello 晒出中签长鑫的战绩，「上次中了个华润新能源当天涨了 140%+ 卖掉了」，今年账号中签两次</span>
+  <span class="topic-step">群友集体围观「蒋姐还是有钱呢」，文森特哀嚎「我+我老婆从来没有中过签」</span>
+  <span class="topic-act">第二幕：操盘手的规矩</span>
+  <span class="topic-step">SayHello 自曝「亏了算我的，一年分 20% 给操盘手」，文森特当场算账「一本万利啊」</span>
+  <span class="topic-step">反手说给妈妈理财「每年分 4 个点，亏了还要算我的」——群友笑翻</span>
+  <span class="topic-step">SayHello 再曝「上周一天亏了 10 万，这一签不够我亏的」——凡尔赛与心酸齐飞</span>
+  <span class="topic-act">第三幕：合肥 VS 城市产业论</span>
+  <span class="topic-step">木子评价「合肥投的几个新兴产业是全中了，能成功一个有运气，中了好几个那就是眼光」</span>
+  <span class="topic-step">右下角的卷毛先生分析合肥「拣长三角剩下的产业，投核聚变芯片新能源」</span>
+  <span class="topic-step">桃子请来的逗比-IT 泼冷水「长鑫之前差点都死了，不能光看见吃肉」</span>
+  <div class="highlight-quote">
+    <span class="highlight-text">「上周有一天，我才一天亏了 10 万，这一签不够我亏的」</span>
+    <span class="highlight-author">— SayHello</span>
+  </div>
+  <span class="ai-note">💬 AI 锐评：一边羡慕合肥的「城市级 VC」眼光，一边心疼自己中签那点零头。长鑫上市把合肥捧成了「最敢下注的城市」，群友则用一天亏 10 万的真实故事证明：赌城光环底下，散户永远是那个最容易上头的人。</span>
+  <span class="topic-participants">主要参与者：SayHello、文森特、木子、右下角的卷毛先生、桃子请来的逗比-IT</span>
 </li>
+
 <li>
-<strong class="topic-title">长鑫、合肥与长沙：从“闭眼赚八倍”聊到城市产业焦虑</strong>
-<span class="topic-act">第一幕：产业比较先从电车话题旁边长出来</span>
-<span class="topic-step">7 月 24 日，新能源讨论顺势拐向合肥城投、长鑫和科技企业投资；群友开始比较合肥与长沙在产业、城建和科研转化上的路径。</span>
-<span class="topic-step">刘晨熙提到长沙长期文旅定位与科技板块魄力不足，tsla-特烦恼03530、Kerwin 接着讨论高校成果外流、中南变化与本地营商环境。</span>
-<span class="topic-step">孔巍用实际经营中的检查、整改和额外成本补充体感，使宏观比较落到企业日常，而不是只停在口号。</span>
-<span class="topic-act">第二幕：长鑫认购传闻把热度再次拉高</span>
-<span class="topic-step">7 月 27 日，zhouu 用“六块开盘四十八”“闭眼赚八倍”形容认购想象，MR-Z 随即修正认购价与倍数，没中签成为共同遗憾。</span>
-<span class="topic-step">机构调研、总部周边酒店爆满等传闻进一步制造热度，但讨论里缺少可验证的交易细节，更多是围观“别人钱怎么赚得这么舒服”。</span>
-<span class="topic-step">这条线最后没有给出投资建议，却把群体情绪暴露得很完整：羡慕、错过、听不懂，以及对城市能不能抓住产业机会的长期焦虑。</span>
-<div class="highlight-quote">
-<span class="highlight-text">点睛之笔：“钱原来可以赚得这么舒服。”</span>
-<span class="highlight-author">— zhouu</span>
-</div>
-<span class="ai-note">AI 锐评：没中签的人负责算倍数，没参与的人负责说听不懂，最后所有人都在复盘城市战略。财富效应最强的地方，往往是旁观席。</span>
-<span class="topic-participants">主要参与者：zhouu、MR-Z、刘晨熙、tsla-特烦恼03530、st、Kerwin、孔巍</span>
+  <span class="topic-title">📉 日本崩盘论 VS AI 泡沫：立木的树的长文轰炸</span>
+  <span class="topic-act">第一幕：万字雄文登场</span>
+  <span class="topic-step">07-26 深夜立木的树连发三屏长文：日元跌到 164、carry trade 规模逼近 19 万亿、两套剧本（日本完犊子 or AI 泡沫破灭），「AI 订单没有意义，就看日元」</span>
+  <span class="topic-step">群友沉默几秒后，桃子请来的逗比-IT 接话「经济危机可能确实近在眼前了」</span>
+  <span class="topic-act">第二幕：官方数据的迷惑</span>
+  <span class="topic-step">Lemon-学生「失业率在下降，失业保险的支出金额却在上升」</span>
+  <span class="topic-step">刘某人当场拆台「谁跟你说的失业率在下降」「你去外面看看多了多少女骑手」</span>
+  <span class="topic-step">Lemon-学生辩解「我说的是官方数据自己都不打算粉饰了」</span>
+  <span class="topic-act">第三幕：狼来了的分歧</span>
+  <span class="topic-step">静火质疑「有点夸大日本崩盘的概率」「日本国债主要由国内机构持有」</span>
+  <span class="topic-step">文森特补上「私募募资的杠杆率不清楚，就当狼来了的故事听」</span>
+  <span class="topic-step">群友在「看多 AI」和「看空流动性」之间各自站队，谁也没说服谁</span>
+  <div class="highlight-quote">
+    <span class="highlight-text">「现在 30 年日债收益率是 4%，30 年美债收益率是 5.16%，差的已经不多」</span>
+    <span class="highlight-author">— 立木的树</span>
+  </div>
+  <span class="ai-note">💬 AI 锐评：一篇足够写进研报的长文，被刘某人一句「女骑手变多了」当场拆了台。群友的宏观素养在「美联储流动性」和「你楼下外卖」之间反复横跳——懂的人不多，但嘴都挺硬，最后用一句「狼来了」给这场宏大叙事体面收尾。</span>
+  <span class="topic-participants">主要参与者：立木的树、Lemon-学生、刘某人、静火、文森特</span>
 </li>
+
 <li>
-<strong class="topic-title">长沙方言与童年电视：一群成年人突然集体回到雪花屏前</strong>
-<span class="topic-act">第一幕：香港与奥特曼意外打开记忆入口</span>
-<span class="topic-step">免税烟、香港开卡与迪士尼的现实比较，突然被“如果开奥特曼乐园就去”带进童年频道。</span>
-<span class="topic-step">迪迦、赛文、湖南卫视、湖南经视、《越策越开心》和《一家老小向前冲》接连出现，农村天线只能收到断续画面的经历引发强烈共鸣。</span>
-<span class="topic-step">原版长沙话被改成合肥话播出，让部分群友多年后才发现童年熟悉的剧其实来自湖南。</span>
-<span class="topic-act">第二幕：方言口音变成现场表演</span>
-<span class="topic-step">tsla-特烦恼03530坦言来长沙多年仍会听不懂老口音，Kerwin 补充岳阳甚至村与村之间都不一样，刘阜轩则开始逐句教学。</span>
-<span class="topic-step">“喔该喽”、语调拖长、一个“嬲”字表达多种情绪，被群友用文字模拟成一场无声语音课。</span>
-<span class="topic-step">Mr.Ling 坚持自己说普通话更有“斯文感”，群友则一致认为他保持本色更省力；方言讨论最终收束成一场身份与熟悉感的互相认证。</span>
-<div class="highlight-quote">
-<span class="highlight-text">点睛之笔：“我的童年呀。”</span>
-<span class="highlight-author">— tsla-特烦恼03530</span>
-</div>
-<span class="ai-note">AI 锐评：真正的共同语言，不一定是标准普通话，也可能是雪花屏、经视片头和一句拖得足够长的“嬲”。这段聊天的乡愁，带着很响的长沙口音。</span>
-<span class="topic-participants">主要参与者：tsla-特烦恼03530、zhouu、st、刘阜轩、Mr.Ling、Kerwin、周爆护</span>
+  <span class="topic-title">🥘 长沙人口中的美食帝国：从杭州荒漠到顺德朝圣</span>
+  <span class="topic-act">第一幕：杭州到底有没有吃的</span>
+  <span class="topic-step">张硕「杭州就不能给别的地方的吃的偷一点吧」，风林-杨「杭州本地没啥吃的」</span>
+  <span class="topic-step">四叶草「杭州号称美食荒漠」，右下角的卷毛先生「就商场一点连锁店」</span>
+  <span class="topic-act">第二幕：辣椒江湖排行榜</span>
+  <span class="topic-step">风林-杨「湖南是香辣，四川是麻辣，江西是纯辣」，Lemon-学生「非常同意」</span>
+  <span class="topic-step">四叶草吐槽上海的江西菜「每个菜都是甜的」「特意喊来经理咨询，经理说改良了符合本地需求」</span>
+  <span class="topic-step">安亦1「江西菜没改良，外地人大概率要拉肚子」</span>
+  <span class="topic-act">第三幕：顺德与美食迁徙</span>
+  <span class="topic-step">文森特把佛山顺德美食游的功课做得比写代码还认真</span>
+  <span class="topic-step">周祎玫爆料「有个朋友为了吃，跳槽去了顺德！」</span>
+  <span class="topic-step">风林-杨聊起深圳科兴的「辣可可」「小炒黄牛肉确实好吃」，咸鱼-it「科兴底下不吃一次都转正不了」</span>
+  <span class="topic-step">安亦1安利「在深圳多试几家潮汕粿条」</span>
+  <div class="highlight-quote">
+    <span class="highlight-text">「顺德人：我可不认我是佛山人」</span>
+    <span class="highlight-author">— 周祎玫</span>
+  </div>
+  <span class="ai-note">💬 AI 锐评：长沙人走到哪都自带一张「辣椒裁判证」，从杭州沙漠到顺德食堂，硬是把美食聊成了各地产业结构的投影。周祎玫为了吃跳槽顺德的行为，让本群「为 AI 疯狂烧钱」的人设第一次显得如此接地气。</span>
+  <span class="topic-participants">主要参与者：张硕、风林-杨、四叶草、安亦1、文森特、周祎玫</span>
 </li>
+
 <li>
-<strong class="topic-title">充电头与强光手电：消费决策从参数党一路卷到“制裁远光”</strong>
-<span class="topic-act">第一幕：安克、绿联与酷态科的品牌排位</span>
-<span class="topic-step">tsla-特烦恼03530觉得新买充电设备功率偏小，Mr.Ling建议直接选最大功率，并把安克的耐用、MFi 认证和品牌路线讲了一遍。</span>
-<span class="topic-step">zhouu 带入绿联，话题进一步比较摩米士、品胜、飞毛腿与酷态科；价格战、原厂配件偏好和品牌做烂的路径都有群友补充。</span>
-<span class="topic-step">结论不是单纯“贵的好”，而是功率需求、认证、耐用和价格共同决定，三块钱的数据线也许能用，但没人敢保证它什么时候开始表演。</span>
-<span class="topic-act">第二幕：手电筒被赋予道路正义</span>
-<span class="topic-step">7 月 28 日，陈摄抛出几十元强光手电与远射、泛光测试，Mr.Ling 立刻索要链接，话题从商品参数转成如何应对对向远光。</span>
-<span class="topic-step">陈摄强调这两年动力电池和供应链把价格卷低，“不是越贵越好”；群友一边等实测，一边把家用手电想象成车载反远光装备。</span>
-<span class="topic-step">理性落点仍应是道路安全：参数研究可以保留，真正上路互射只会让双方都看不见。</span>
-<div class="highlight-quote">
-<span class="highlight-text">点睛之笔：“不是越贵越好，成本很低的。”</span>
-<span class="highlight-author">— 陈摄</span>
-</div>
-<span class="ai-note">AI 锐评：群里对消费品的最高礼遇，是三分钟内从“这是什么”进化到“上链接”。至于把手电当道路执法器，建议让购物欲停在购物车里。</span>
-<span class="topic-participants">主要参与者：Mr.Ling、tsla-特烦恼03530、zhouu、陈摄、st、Kerwin</span>
+  <span class="topic-title">❤️ 森岚的 AI 相亲创业：问卷匹配、9.9 牵线与 MBTI 叠加八字</span>
+  <span class="topic-act">第一幕：群主的新业务</span>
+  <span class="topic-step">07-30 森岚宣布「借助 AI 重启相亲项目」：腾讯问卷 + workbuddy 自动化任务，40 道题结构化问卷，AI 后台匹配</span>
+  <span class="topic-step">「匹配成功且愿意交换微信的，付 9.9 给我，相当于请我喝杯咖啡给你们拉红线」</span>
+  <span class="topic-act">第二幕：产品经理式灵魂拷问</span>
+  <span class="topic-step">张硕支招「像之前爆火的 imsb 那个 MBTI 测试一样，先搞火再推广」</span>
+  <span class="topic-step">蟹🦀 现场写起匹配公式「多维兼容度 0-1 加权平均」——文科生森岚当场懵了</span>
+  <span class="topic-step">森岚坚持「不想做成普适产品，就做返湘人群的信任背书」</span>
+  <span class="topic-act">第三幕：相亲行业的残酷真相</span>
+  <span class="topic-step">森岚「男的才是稀缺品」「杭州千人相亲会一个男的都没有」</span>
+  <span class="topic-step">张硕输出「能去约会的不用相亲，相亲是想结婚但条件没对齐」</span>
+  <span class="topic-step">老实人自嘲「我有💰肯定找，问题是没💰，不耽误女孩子青春吗」</span>
+  <div class="highlight-quote">
+    <span class="highlight-text">「又怕群主苦，又怕群主开路虎？」</span>
+    <span class="highlight-author">— 森岚</span>
+  </div>
+  <span class="ai-note">💬 AI 锐评：森岚用一套「问卷 + AI + 9.9」的轻量模型，把相亲做成了社群信任生意——省钱、省事、还自带道德高地。群友一边帮他改产品方案，一边老实填写问卷，堪称本群最成功的「羊毛出在羊身上」。至于「AI 能不能匹配爱情」，可能连他给自己写的公式都不信。</span>
+  <span class="topic-participants">主要参与者：森岚、张硕、蟹🦀、老实人、四叶草</span>
 </li>
+
+<li>
+  <span class="topic-title">👷 AI 废人论与魔法对轰职场：组长用 GPT 交方案</span>
+  <span class="topic-act">第一幕：AI 干得太快，人更累了</span>
+  <span class="topic-step">森岚「我刚想完一个思路，发给他，他马上洋洋洒洒一整套方案就出来了，然后我就得马上看」</span>
+  <span class="topic-step">文森特「早上 9 点到 12 点没离开办公桌一步」「我对文档质量要求更高了」</span>
+  <span class="topic-step">SayHello 说出打工人内心戏「我又不想升职不想加薪，但就是想把自己事情做好」</span>
+  <span class="topic-act">第二幕：魔法对轰名场面</span>
+  <span class="topic-step">柚子吐槽「叫组员做一个方案设计文档，结果他直接 GPT Work 生成出来给我，里面的内容不能说错，但要你自己去验证」</span>
+  <span class="topic-step">森岚搬出「猴子理论」和「电梯法则」，教大家如何让猴子爬回组员背上</span>
+  <span class="topic-step">长沙群-深圳-IT-沉淀「客户用 AI 出了个需求书，我用 AI 做了个方案，他再用 AI 审阅」——三方魔法对轰</span>
+  <span class="topic-act">第三幕：AI 时代的职场图鉴</span>
+  <span class="topic-step">文森特「同事也用 ai，大家魔法对轰：用 AI 生成大量信息发给同事，同事用 AI 总结后再阅读」</span>
+  <span class="topic-step">想想「有同事用 AI 写了五万字方案让我看，我说你写了 5 万字就是不准备给我看的」</span>
+  <span class="topic-step">风林-杨补刀「老实人被压榨，工资一般也不是 team 最高的」</span>
+  <div class="highlight-quote">
+    <span class="highlight-text">「你写了 5 万字就是不准备给我看的」</span>
+    <span class="highlight-author">— 想想</span>
+  </div>
+  <span class="ai-note">💬 AI 锐评：这一周把「AI 提效」聊成了大型职场惊悚片——组长用 GPT 交方案，组员用 AI 复核，领导再用 AI 总结，人类全程只负责签字背锅。猴子理论被群友奉为圣经，但每个人都清楚：猴子永远不会消失，它只是从一个背上跳到了另一个背上。</span>
+  <span class="topic-participants">主要参与者：森岚、文森特、SayHello、想想、柚子</span>
+</li>
+
+<li>
+  <span class="topic-title">🏸 羽毛球与心率互搏：碳基生物最后的倔强</span>
+  <span class="topic-act">第一幕：打完球的高心率炫耀</span>
+  <span class="topic-step">风林-杨「今天打了两把 24 比 25，全靠意志力支撑，最高心率 181」</span>
+  <span class="topic-step">张硕「特别那种打到 21 分往上的，每一分都是煎熬」「我极限心率应该在 194」</span>
+  <span class="topic-step">风林-杨「你真不会猝死吗」——关心与嘲讽的界限逐渐模糊</span>
+  <span class="topic-act">第二幕：运动数据凡尔赛</span>
+  <span class="topic-step">张硕「我打球只要开始用球拍支撑地面，就说明心率到 185 以上」</span>
+  <span class="topic-step">风林-杨「超过 185 我手表会疯狂震我」</span>
+  <span class="topic-step">张硕骑车「试过站起来蹬不动的坡，直接人得下车坐路边，眼都黑了」</span>
+  <span class="topic-act">第三幕：碳基与硅基的平衡论</span>
+  <span class="topic-step">风林-杨「碳基生物还是运动运动，不然没精力卷硅基生物」</span>
+  <span class="topic-step">江湖夜雨插一句「有人跑马拉松吗，苹果手表心率不准」</span>
+  <span class="topic-step">群友从额度大战切换到心率大战，完成了本群最健康的一集</span>
+  <div class="highlight-quote">
+    <span class="highlight-text">「碳基生物还是运动运动，不然没精力卷硅基生物」</span>
+    <span class="highlight-author">— 风林-杨</span>
+  </div>
+  <span class="ai-note">💬 AI 锐评：当全群都在为 token 额度焦虑时，这两位用真实心率给「卷」下了新定义——一个 181 一个 194，把运动数据甩出来互相比狠，不知道的以为他们在决赛局抢七。好在他们还记得自己是碳基生物，否则这个群真的只剩硅基生物在值班了。</span>
+  <span class="topic-participants">主要参与者：风林-杨、张硕、江湖夜雨</span>
+</li>
+
       </ul>
     </div>
 
     <div class="section">
       <h2>区间活跃之星</h2>
+      <div id="active-stars-chart" class="stars-chart-container"></div>
       <ol>
-        <li>
-<div class="rank-item">
-<span class="rank-main">#1 tsla-特烦恼03530</span>
-<strong>710 条</strong>
-</div>
-<span class="star-note">AI 锐评：这周的群聊主发动机，从充电桩、续航和保险一路聊到啤酒、旅游与方言，几乎每条主线都能找到他的脚印。擅长先抛一个具体问题，再连续追问到能落地；偶尔把别人的一句话原样接走，像给讨论顺手开了增压。</span>
-<div class="tag-row"><span class="tag">话题电池</span><span class="tag">经验库</span><span class="tag">复读增幅</span></div>
+        
+<li>
+  <div class="rank-item">
+    <span class="rank-main"><span style="color:var(--muted);margin-right:8px;">#1</span>风林-杨</span>
+    <span style="color:var(--cyan);font-weight:700;">777条</span>
+  </div>
+  <span class="star-note">群主本人，本周的额度情报站、模型鉴定师和热点点火人。一手「codex + gpt5.6 + ⚡」组合拳打天下，一手「你们这些叼毛」点评全军。看似在劝群友别卷，实际自己是全群卷得最狠的那个——把群聊当生产环境跑，把 AI 当同事用。</span>
+  <div class="tag-row"><span class="tag">群聊发动机</span> <span class="tag">情报站</span> <span class="tag">节奏控场</span></div>
 </li>
 <li>
-<div class="rank-item">
-<span class="rank-main">#2 st</span>
-<strong>451 条</strong>
-</div>
-<span class="star-note">AI 锐评：最会把生活现场直接推流进群的人：车黑屏、充电跳闸、要跑长途，全是边发生边播报。技术问题问得真，吐槽也来得快；上一秒说受够电车，下一秒又在研究安克和家充，嘴硬程度与参与度成正比。</span>
-<div class="tag-row"><span class="tag">故障主播</span><span class="tag">接梗王</span><span class="tag">天气哨</span></div>
+  <div class="rank-item">
+    <span class="rank-main"><span style="color:var(--muted);margin-right:8px;">#2</span>张硕</span>
+    <span style="color:var(--cyan);font-weight:700;">687条</span>
+  </div>
+  <span class="star-note">全群最会折腾的男人：四个项目并行、飞书编排、安卓模拟器、玻利维亚区、鸿蒙、opencode，什么都要试一遍，什么都在他上手后开始封号。自嘲「行业冥灯」却不改折腾本色，用最朴实的话讲最硬核的 AI 实验，是本群技术流吉祥物。</span>
+  <div class="tag-row"><span class="tag">行业冥灯</span> <span class="tag">实验狂魔</span> <span class="tag">技术吉祥物</span></div>
 </li>
 <li>
-<div class="rank-item">
-<span class="rank-main">#3 Mr.Ling</span>
-<strong>352 条</strong>
-</div>
-<span class="star-note">AI 锐评：只要群里问品牌、店铺、充电规格或人生歪理，他都像已经做过三轮对比评测。能把鱼粉推荐写成军令状，也能把严肃讨论拐进段子区；信息密度不低，戏剧浓度更高，是那种不甘心只给答案、还要顺手抢走场面的人。</span>
-<div class="tag-row"><span class="tag">推荐官</span><span class="tag">老司机</span><span class="tag">补刀位</span></div>
+  <div class="rank-item">
+    <span class="rank-main"><span style="color:var(--muted);margin-right:8px;">#3</span>Lemon-学生</span>
+    <span style="color:var(--cyan);font-weight:700;">535条</span>
+  </div>
+  <span class="star-note">群里的性价比之神。从苹果礼品卡到新加坡节点，从麻豆科技到 freemodel，哪便宜往哪钻，还自带「token 节能技术栈」。用最便宜的方案干最重的活，把「白嫖」两个字活成了方法论。偶尔发出「我靠又重置」的破防，但下一秒又「开蹬」。</span>
+  <div class="tag-row"><span class="tag">白嫖研究员</span> <span class="tag">省钱军师</span> <span class="tag">token精算师</span></div>
 </li>
 <li>
-<div class="rank-item">
-<span class="rank-main">#4 zhouu</span>
-<strong>335 条</strong>
-</div>
-<span class="star-note">AI 锐评：音乐、啤酒、粤菜、海边、方言童年和长鑫认购，她都能快速找到自己的切口。表达很依赖真实体验，所以“好吃”“苦”“想回来嗦粉”比空泛结论更有说服力；笑声多，但不是只负责捧场，常常也是把话题推向新支线的人。</span>
-<div class="tag-row"><span class="tag">兴趣雷达</span><span class="tag">气氛泵</span><span class="tag">体验派</span></div>
+  <div class="rank-item">
+    <span class="rank-main"><span style="color:var(--muted);margin-right:8px;">#4</span>森岚</span>
+    <span style="color:var(--cyan);font-weight:700;">270条</span>
+  </div>
+  <span class="star-note">群里的产品经理担当，把「腾讯问卷 + workbuddy + AI」这套组合拳打出了花——相亲、招聘、命理项目一个个排着队来。最爱输出「猴子理论」「电梯法则」，名言是「又怕群主苦，又怕群主开路虎」。本周用 hy3 完成相亲项目整套设计，文科生属性拉满。</span>
+  <div class="tag-row"><span class="tag">副业诗人</span> <span class="tag">方法论机器</span> <span class="tag">问卷创业家</span></div>
 </li>
 <li>
-<div class="rank-item">
-<span class="rank-main">#5 Z</span>
-<strong>282 条</strong>
-</div>
-<span class="star-note">AI 锐评：发言习惯像直播弹幕，一句话拆成好几条，气势先把屏幕占满再说。观山咖啡、路上偶遇和临场见闻是主要素材，真实信息和自我包装混在一起；群友一质疑，他又能立刻把自己写成“天天被骗”的诚实受害者。</span>
-<div class="tag-row"><span class="tag">连发弹幕</span><span class="tag">现场主播</span><span class="tag">咖啡驻点</span></div>
+  <div class="rank-item">
+    <span class="rank-main"><span style="color:var(--muted);margin-right:8px;">#5</span>星淇</span>
+    <span style="color:var(--cyan);font-weight:700;">227条</span>
+  </div>
+  <span class="star-note">群里的羊毛猎人兼第一手消息源：玻利维亚区、giffgaff、白嫖 claude、UU 远程、X 上最新封号动态，什么新鲜玩什么。自称「账号子弹库」，结果账号先被封了。情报准、踩坑更快，是群友验证消息真伪的活体试纸。</span>
+  <div class="tag-row"><span class="tag">羊毛猎人</span> <span class="tag">情报员</span> <span class="tag">踩坑先锋</span></div>
 </li>
 <li>
-<div class="rank-item">
-<span class="rank-main">#6 陈摄</span>
-<strong>244 条</strong>
-</div>
-<span class="star-note">AI 锐评：对金丝玉、强光手电、车辆和各种新鲜玩意有稳定输出，遇到参数问题会继续找视频、找链接、找价差。平时惜字如金，补刀却常常精准；别人还在问“这是什么”，他已经研究到动力电池和远射方案了。</span>
-<div class="tag-row"><span class="tag">器材党</span><span class="tag">链接投手</span><span class="tag">冷箭手</span></div>
+  <div class="rank-item">
+    <span class="rank-main"><span style="color:var(--muted);margin-right:8px;">#6</span>右下角的卷毛先生</span>
+    <span style="color:var(--cyan);font-weight:700;">226条</span>
+  </div>
+  <span class="star-note">全群最懂「端到端」的人——goal 跑任务、人出去茶歇，回来连域名都买好了。上班日常是「多开 MAX 模式」，手机投屏到电脑摸鱼还配耳机装开会。把 AI 用出了「老板以为你在干活、实际上你在给 AI 监工」的境界。</span>
+  <div class="tag-row"><span class="tag">摸鱼大师</span> <span class="tag">端到端玩家</span> <span class="tag">远程摸鱼</span></div>
 </li>
 <li>
-<div class="rank-item">
-<span class="rank-main">#7 无花果大王</span>
-<strong>240 条</strong>
-</div>
-<span class="star-note">AI 锐评：白天在果园和生活账单里打滚，夜里把寂寞、酒局和自我调侃一股脑倒进群。存在感很高，信息密度随心情波动，但胜在从不端着；一句“职业舔狗”能把自己先损完，让别人反而没处下刀。</span>
-<div class="tag-row"><span class="tag">自嘲王</span><span class="tag">夜班段子</span><span class="tag">刷脸担当</span></div>
+  <div class="rank-item">
+    <span class="rank-main"><span style="color:var(--muted);margin-right:8px;">#7</span>想想</span>
+    <span style="color:var(--cyan);font-weight:700;">210条</span>
+  </div>
+  <span class="star-note">不声不响的狠人：用 Codex 搓出鸿蒙原生 GPT 客户端，解决「鸿蒙没 GPT」的痛点；「我搓出来的最起码我自己还用」。谈起公司 AI 使用、token 单价如数家珍。偶尔冒出「嫂子模拟器」这样的不正经项目，人设当场崩塌。</span>
+  <div class="tag-row"><span class="tag">民间极客</span> <span class="tag">造轮子选手</span> <span class="tag">反差萌</span></div>
 </li>
 <li>
-<div class="rank-item">
-<span class="rank-main">#8 刘晨熙</span>
-<strong>165 条</strong>
-</div>
-<span class="star-note">AI 锐评：他的发言常带数字：两年四万四千公里、续航变化、税费收入、运动时长，讨论因此多了可核对的支点。网球羽毛球和补给是生活面，城市产业与用车成本是分析面；不一定抢热闹，但经常负责把热闹拽回事实。</span>
-<div class="tag-row"><span class="tag">数据派</span><span class="tag">运动档</span><span class="tag">成本会计</span></div>
+  <div class="rank-item">
+    <span class="rank-main"><span style="color:var(--muted);margin-right:8px;">#8</span>文森特</span>
+    <span style="color:var(--cyan);font-weight:700;">207条</span>
+  </div>
+  <span class="star-note">群里的宏观经济学兼文档流选手：4 天工作制考据、日本崩盘推演、合同摘要质量报告，一开口就是论文体。炒股只玩「全天候组合」（「3200 以下买入，持有到退休」），写文档必用 AI（「五页纸报告没改一个字」）。是全群最敢说「AI 废人」又最依赖 AI 的人。</span>
+  <div class="tag-row"><span class="tag">理论派</span> <span class="tag">文档大师</span> <span class="tag">宏观帝</span></div>
 </li>
 <li>
-<div class="rank-item">
-<span class="rank-main">#9 斯文、、败类</span>
-<strong>149 条</strong>
-</div>
-<span class="star-note">AI 锐评：最擅长带来“我有个朋友”的长篇连续剧，人物关系、反转和后续一个不缺。故事多到群友开始反向质检他的朋友圈，这既是素材优势也是天然笑点；真正可贵的是细节足，大家至少有东西可争，而不是对着空气表态。</span>
-<div class="tag-row"><span class="tag">故事仓</span><span class="tag">野生编剧</span><span class="tag">方言口述</span></div>
+  <div class="rank-item">
+    <span class="rank-main"><span style="color:var(--muted);margin-right:8px;">#9</span>四叶草</span>
+    <span style="color:var(--cyan);font-weight:700;">148条</span>
+  </div>
+  <span class="star-note">群里的气氛调节器兼美食地图：从杭州美食荒漠聊到顺德双皮奶，从费大厨涨价聊到深圳食堂。不抢技术话题，但每轮美食、职场、生活讨论都有她的补刀——「我社恐咋搞」「去上海要吃甜的我放弃了」。温柔但句句在点。</span>
+  <div class="tag-row"><span class="tag">生活百事通</span> <span class="tag">捧场型选手</span> <span class="tag">美食雷达</span></div>
 </li>
 <li>
-<div class="rank-item">
-<span class="rank-main">#10 Kerwin</span>
-<strong>145 条</strong>
-</div>
-<span class="star-note">AI 锐评：回答偏短、偏实用：免税烟价格、Visa、维修中心、代步车条件，知道的就直接给口径。别人负责把故事讲大，他经常负责把边界缩回来；偶尔自称纯真无邪，效果大概和宝马车主自称打工仔一样，主要供群友取乐。</span>
-<div class="tag-row"><span class="tag">快答机</span><span class="tag">现实校准</span><span class="tag">售后地图</span></div>
+  <div class="rank-item">
+    <span class="rank-main"><span style="color:var(--muted);margin-right:8px;">#10</span>安亦1</span>
+    <span style="color:var(--cyan);font-weight:700;">134条</span>
+  </div>
+  <span class="star-note">全群最具文学天赋的封号受害者：一篇《这是他成年以来最短的一个夏天》把 giffgaff 封号写成了赛博移民文学。同时是信用卡研究专家（「12 行信用卡，用最少的估计就是招猴了」）和 gg 卡情报员。破防时最文青，研究卡时最较真。</span>
+  <div class="tag-row"><span class="tag">段子手</span> <span class="tag">卡圈情报员</span> <span class="tag">封号文学作家</span></div>
 </li>
 <li>
-<div class="rank-item">
-<span class="rank-main">#11 Jemmy</span>
-<strong>121 条</strong>
-</div>
-<span class="star-note">AI 锐评：很少写长篇，但善于在对方刚说完时补上最省字、最伤神的一句。身高、饮食、喝酒和群友互损都能接，尤其擅长把严肃话题推到荒诞边缘再收手；属于发言不必多解释，大家看见就知道这一刀从哪来。</span>
-<div class="tag-row"><span class="tag">冷面补刀</span><span class="tag">短句高手</span><span class="tag">梗回收</span></div>
+  <div class="rank-item">
+    <span class="rank-main"><span style="color:var(--muted);margin-right:8px;">#11</span>SayHello</span>
+    <span style="color:var(--cyan);font-weight:700;">125条</span>
+  </div>
+  <span class="star-note">本周打新幸运星：中签长鑫两次、一天亏过 10 万、给操盘手分 20%。用最淡定的语气讲最刺激的钱：「这一签不够我亏的」。聊 AI 也实在——Codex 闪退了、DS 还有 50 块没花完、问怎么退钱。是群里少见的「有钱且有梗」体质。</span>
+  <div class="tag-row"><span class="tag">打新欧皇</span> <span class="tag">股票凡尔赛</span> <span class="tag">实在人</span></div>
 </li>
 <li>
-<div class="rank-item">
-<span class="rank-main">#12 孔巍</span>
-<strong>101 条</strong>
-</div>
-<span class="star-note">AI 锐评：从营商环境的经营案例到医院陪护、鱼粉、钓鳜鱼，他的素材都带着现实摩擦感。讲人脉时像打开支线地图，讲办事成本时又足够具体；能把宏观抱怨落到两万元整改报告，这比十句口号更有穿透力。</span>
-<div class="tag-row"><span class="tag">案例库</span><span class="tag">人脉线</span><span class="tag">钓鱼档</span></div>
+  <div class="rank-item">
+    <span class="rank-main"><span style="color:var(--muted);margin-right:8px;">#12</span>simple</span>
+    <span style="color:var(--cyan);font-weight:700;">92条</span>
+  </div>
+  <span class="star-note">群里最勤快的提问者和学习委员：「有 AI agent 产品课程推荐吗」「codeX 这个月公司的用完了」。热爱追踪工具动态，从 cursor 到 codex 再到 workbuddy 全都试用，是标准的「工具党自我修养」。偶尔冒出的「拿头部署哈哈，k3 这个价格」很有一针见血的味道。</span>
+  <div class="tag-row"><span class="tag">学习委员</span> <span class="tag">工具党</span> <span class="tag">职场观察员</span></div>
 </li>
 <li>
-<div class="rank-item">
-<span class="rank-main">#13 张凯</span>
-<strong>99 条</strong>
-</div>
-<span class="star-note">AI 锐评：笑声、邀约和现场回报是主要输出，常在别人抛梗后第一时间把气氛接住。信息量不总是最高，但群聊需要这种稳定回声，否则很多段子只能孤零零落地；喝八两后第二天主动报备，也算为“再也不喝”提供了真人样本。</span>
-<div class="tag-row"><span class="tag">捧场快反</span><span class="tag">酒局播报</span><span class="tag">社交胶水</span></div>
+  <div class="rank-item">
+    <span class="rank-main"><span style="color:var(--muted);margin-right:8px;">#13</span>桃子请来的逗比-IT</span>
+    <span style="color:var(--cyan);font-weight:700;">77条</span>
+  </div>
+  <span class="star-note">十年老项目的资深 IT，带着「10 年 150w 行代码」的资历点评张硕一下午 100w 行的壮举。全程负责给群友科普、泼冷水和接梗，名言「对啊，正经点，做个小姨子模拟器」。技术话题他总能给你拉到现实，热闹话题他总能给你逗笑。</span>
+  <div class="tag-row"><span class="tag">老司机</span> <span class="tag">技术定海神针</span> <span class="tag">接梗担当</span></div>
 </li>
 <li>
-<div class="rank-item">
-<span class="rank-main">#14 刘阜轩</span>
-<strong>93 条</strong>
-</div>
-<span class="star-note">AI 锐评：一进入方言、见面礼或朋友互损，他的文字就自动带上语音效果。擅长连续短句加速节奏，公共场合嘴上说不好，下一条照样把长沙话演到底；存在感来自表演性，不来自端着讲道理。</span>
-<div class="tag-row"><span class="tag">方言麦霸</span><span class="tag">节奏加速</span><span class="tag">起哄位</span></div>
+  <div class="rank-item">
+    <span class="rank-main"><span style="color:var(--muted);margin-right:8px;">#14</span>Zevin</span>
+    <span style="color:var(--cyan);font-weight:700;">65条</span>
+  </div>
+  <span class="star-note">群里的短剧与 AI 娱乐观察员：从「被裁掉的女孩」到 AI 短剧虚拟角色、小松菜奈的痣，再到图灵测试吐槽「他不像人，我判定他为 ai」。用最敏锐的观察力捕捉 AI 时代的文化符号，是全群「娱乐至死」那一卦的代表。</span>
+  <div class="tag-row"><span class="tag">娱乐观察家</span> <span class="tag">AI文化点评人</span> <span class="tag">冷幽默</span></div>
 </li>
 <li>
-<div class="rank-item">
-<span class="rank-main">#15 我</span>
-<strong>72 条</strong>
-</div>
-<span class="star-note">AI 锐评：出场频率不算最高，但常在讨论最绕的时候抛出一句问题或判词：充电桩保险、测速罚款、婚恋奇闻都能迅速抓到不合理处。风格是少铺垫、直接落刀，“归阎王判”这种句子说明不需要长篇，也能把整段讨论钉住。</span>
-<div class="tag-row"><span class="tag">冷面吐槽</span><span class="tag">关键追问</span><span class="tag">短句裁判</span></div>
+  <div class="rank-item">
+    <span class="rank-main"><span style="color:var(--muted);margin-right:8px;">#15</span>老实人</span>
+    <span style="color:var(--cyan);font-weight:700;">54条</span>
+  </div>
+  <span class="star-note">人如其名但绝不好欺负：一句「不是，真以为股市是给散户开的啊」直接给全场泼冷水；「你不干有的是人干」是本群最扎心的职场真相。对森岚的相亲项目既捧场又拆台，是那种「你不想听但不得不服」的群友。</span>
+  <div class="tag-row"><span class="tag">人间清醒</span> <span class="tag">拆台担当</span> <span class="tag">股市毒舌</span></div>
 </li>
-<li>
-<div class="rank-item">
-<span class="rank-main">#16 颖</span>
-<strong>71 条</strong>
-</div>
-<span class="star-note">AI 锐评：面对酒局，她直接承认所有酒都难喝；面对家庭悲剧，她更关心当事人的损失和选择对象的风险。她不抢技术结论，却常把讨论从猎奇拉回人的感受，是群里少数会给热闹降一点噪声的人。</span>
-<div class="tag-row"><span class="tag">情绪校准</span><span class="tag">生活观察</span><span class="tag">清醒席</span></div>
-</li>
-<li>
-<div class="rank-item">
-<span class="rank-main">#17 龚律师</span>
-<strong>66 条</strong>
-</div>
-<span class="star-note">AI 锐评：一旦出现赔偿、继承或“怎么判”，大家会自然把问题推给他，他给出的回答通常短而有边界。闲下来又能无缝切到啤酒和电竞，职业名片并没有妨碍他融入段子；“这个东西碰不得，喝点酒就行了”堪称本周最危险的风险教育。</span>
-<div class="tag-row"><span class="tag">法律接口</span><span class="tag">实用派</span><span class="tag">戒酒未遂</span></div>
-</li>
-<li>
-<div class="rank-item">
-<span class="rank-main">#18 A 小翼哥</span>
-<strong>65 条</strong>
-</div>
-<span class="star-note">AI 锐评：谁吃鱼粉没叫他、谁去活动没通知，他总能第一时间发现，像群里的社交漏单监控。发言多围绕约局、地点和接梗，不抢主角位，却不断提醒大家群聊终究要落到见面和吃饭上。</span>
-<div class="tag-row"><span class="tag">漏邀雷达</span><span class="tag">召集位</span><span class="tag">顺手接梗</span></div>
-</li>
-<li>
-<div class="rank-item">
-<span class="rank-main">#19 周爆护</span>
-<strong>63 条</strong>
-</div>
-<span class="star-note">AI 锐评：车辆故障、续航衰减、区间测速和鱼籽来源，他都能给出一段带个人经验的判断。说话直，不太负责把棱角磨圆；但正因为不兜圈子，很多提醒读完就知道该做什么、该避开什么。</span>
-<div class="tag-row"><span class="tag">经验派</span><span class="tag">路况吐槽</span><span class="tag">硬核提醒</span></div>
-</li>
-<li>
-<div class="rank-item">
-<span class="rank-main">#20 大颖呢🥦</span>
-<strong>48 条</strong>
-</div>
-<span class="star-note">AI 锐评：孩子身高与营养讨论里，她拿出的不是短视频偏方，而是多次生长科就诊后的共识，信息质量很稳。聊到身高焦虑也不假装轻松，能直说目标和担心；偶尔一句现实玩笑，又把过重的气氛及时放下来。</span>
-<div class="tag-row"><span class="tag">育儿实证</span><span class="tag">直球派</span><span class="tag">生活账本</span></div>
-</li>
+
       </ol>
     </div>
 
     <div class="section">
-      <h2>群聊话题小森林</h2>
+      <h2>骚句合集</h2>
+      <ul>
+        
+<li>
+  <div class="quote-item">
+    <span class="quote-scene"><span class="quote-scene-label">骚句来源：</span>07-24 下午聊到 ChatGPT 额度紧张，张硕吐槽一周额度半天就烧光，羡慕 AI 能自己控制休息节奏。</span>
+    <span class="quote-text">「要是人也能控制额度就好了，gpt 干一天，歇 6 天」</span>
+    <span class="quote-speaker">张硕</span>
+    <span class="quote-verdict"><span class="quote-verdict-label">ai聊骚：</span>一句话把 AI 打工人化、把自己工具人化，全群听完都笑了——毕竟没人能让老板给你发 6 天假期。</span>
+    <span class="quote-style">人间清醒</span>
+  </div>
+</li>
+<li>
+  <div class="quote-item">
+    <span class="quote-scene"><span class="quote-scene-label">骚句来源：</span>07-24 讨论 AI 订阅值不值时，张硕算了笔账：1300 的月费约等于雇了个干将，但回头看看自己工资，格局瞬间打开。</span>
+    <span class="quote-text">「一个月 1300 请了个人，也还行，问题是，我这 6-7 千的工资」</span>
+    <span class="quote-speaker">张硕</span>
+    <span class="quote-verdict"><span class="quote-verdict-label">ai聊骚：</span>用 1300 的 AI 雇了个「自己」，工资 6-7 千，这账算得让打工人集体破防又集体心动。</span>
+    <span class="quote-style">凡尔赛式哭穷</span>
+  </div>
+</li>
+<li>
+  <div class="quote-item">
+    <span class="quote-scene"><span class="quote-scene-label">骚句来源：</span>07-27 聊到让 AI 清理电脑，张硕分享「我都是直接跟它说，别让我操作，爱咋整咋整」。</span>
+    <span class="quote-text">「只要不让我操作，结果可以，就行了」</span>
+    <span class="quote-speaker">张硕</span>
+    <span class="quote-verdict"><span class="quote-verdict-label">ai聊骚：</span>当代人机关系的终极宣言：不关心过程，只要结果，你就是最幸福的甲方。</span>
+    <span class="quote-style">躺平宣言</span>
+  </div>
+</li>
+<li>
+  <div class="quote-item">
+    <span class="quote-scene"><span class="quote-scene-label">骚句来源：</span>07-30 大家聊到组员用 AI 写方案，想想说同事写了五万字方案让他看，他当场回怼。</span>
+    <span class="quote-text">「你写了 5 万字就是不准备给我看的」</span>
+    <span class="quote-speaker">想想</span>
+    <span class="quote-verdict"><span class="quote-verdict-label">ai聊骚：</span>用 AI 写方案是本事，用五万字让别人不敢看是境界——一句话点破「信息量过载」的职场真相。</span>
+    <span class="quote-style">毒舌</span>
+  </div>
+</li>
+<li>
+  <div class="quote-item">
+    <span class="quote-scene"><span class="quote-scene-label">骚句来源：</span>07-29 蛋蛋同学痛骂量化割韭菜时，老实人悠悠一句，把全场从愤怒拉回现实。</span>
+    <span class="quote-text">「不是，真以为股市是给散户开的啊」</span>
+    <span class="quote-speaker">老实人</span>
+    <span class="quote-verdict"><span class="quote-verdict-label">ai聊骚：</span>群友吵得越凶，老实人越清醒。一句话就让所有关于公平的讨论瞬间熄火。</span>
+    <span class="quote-style">人间清醒</span>
+  </div>
+</li>
+<li>
+  <div class="quote-item">
+    <span class="quote-scene"><span class="quote-scene-label">骚句来源：</span>07-30 森岚宣布相亲项目收费 9.9，Mr.Zhou 说他「好起来了」，森岚自嘲回应。</span>
+    <span class="quote-text">「又怕群主苦，又怕群主开路虎？」</span>
+    <span class="quote-speaker">森岚</span>
+    <span class="quote-verdict"><span class="quote-verdict-label">ai聊骚：</span>群主把自己的副业说成「请喝咖啡」，把收费做成了道德绑架的浪漫版本，格局打开。</span>
+    <span class="quote-style">自嘲</span>
+  </div>
+</li>
+<li>
+  <div class="quote-item">
+    <span class="quote-scene"><span class="quote-scene-label">骚句来源：</span>07-31 想想晒出「嫂子模拟器」项目，风林-杨让他正经点，桃子请来的逗比-IT 接梗建议换个小姨子。</span>
+    <span class="quote-text">「对啊，正经点，做个小姨子模拟器」</span>
+    <span class="quote-speaker">桃子请来的逗比-IT</span>
+    <span class="quote-verdict"><span class="quote-verdict-label">ai聊骚：</span>接梗速度比代码运行还快，用最认真的语气说最不正经的话，本群最有职业素养的捧哏。</span>
+    <span class="quote-style">歪理</span>
+  </div>
+</li>
+<li>
+  <div class="quote-item">
+    <span class="quote-scene"><span class="quote-scene-label">骚句来源：</span>07-29 安亦1 仿写星淇的「合肥黄金时代」段子，记录 giffgaff 和 ChatGPT 双双封号的全过程。</span>
+    <span class="quote-text">「这是他成年以来最短的一个夏天……有种人类黄金时代体验卡到期了的感觉」</span>
+    <span class="quote-speaker">安亦1</span>
+    <span class="quote-verdict"><span class="quote-verdict-label">ai聊骚：</span>把封号通知写成赛博悼文，文青的破防都带着文学性，堪称本群最体面的崩溃。</span>
+    <span class="quote-style">文青式破防</span>
+  </div>
+</li>
+<li>
+  <div class="quote-item">
+    <span class="quote-scene"><span class="quote-scene-label">骚句来源：</span>07-31 风林-杨转告张硕「AI 又给你送祝福了」，张硕被 AI 选中成为「被祝福者」，感慨 AI 越来越懂他。</span>
+    <span class="quote-text">「ai 既我」</span>
+    <span class="quote-speaker">张硕</span>
+    <span class="quote-verdict"><span class="quote-verdict-label">ai聊骚：</span>三个字完成人机合一的宣言——你不是在用 AI，你就是 AI，这届群友的自我认同已经很超前了。</span>
+    <span class="quote-style">人间清醒</span>
+  </div>
+</li>
+<li>
+  <div class="quote-item">
+    <span class="quote-scene"><span class="quote-scene-label">骚句来源：</span>07-28 张硕展示完骑行和羽毛球心率数据后，风林-杨边聊 AI 边劝大家锻炼，金句收尾。</span>
+    <span class="quote-text">「碳基生物还是运动运动，不然没精力卷硅基生物」</span>
+    <span class="quote-speaker">风林-杨</span>
+    <span class="quote-verdict"><span class="quote-verdict-label">ai聊骚：</span>当全群都在卷硅基生物时，这句「碳基论」成了本群最硬核的养生箴言。</span>
+    <span class="quote-style">人间清醒</span>
+  </div>
+</li>
+
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>🔗 群友关系图谱</h2>
+      <div class="relationship-card">
+        <div class="forest-head">
+          <span class="forest-kicker">从聊天互动中挖掘成员间的微妙关系</span>
+          <span id="rel-note" class="forest-note"></span>
+        </div>
+        <div id="relationship-graph" class="relationship-canvas"></div>
+        <div id="rel-legend" class="relationship-legend"></div>
+      </div>
+      <div id="rel-tooltip" class="rel-tooltip"></div>
+    </div>
+
+    <div class="section forest-section">
+      <h2><span class="forest-title-icon">🌳</span>本期话题小森林</h2>
       <div class="topic-forest-card">
         <div class="forest-head">
           <span class="forest-kicker">从核心关注向群聊话题生长</span>
           <span id="forest-note" class="forest-note"></span>
         </div>
-        <svg id="topic-forest" class="topic-forest" viewBox="0 0 960 660" role="img" aria-label="群聊话题小森林"></svg>
+        <svg id="topic-forest" class="topic-forest" viewBox="0 0 1280 760" role="img" aria-label="本期话题小森林"></svg>
       </div>
     </div>
 
@@ -852,150 +1188,506 @@
     </div>
   </div>
   <script>
-    const words = [["特斯拉", 40], ["充电桩", 38], ["啤酒", 36], ["长沙", 34], ["续航", 32], ["山姆", 30], ["咖啡", 29], ["下雨", 28], ["鱼粉", 27], ["长鑫", 26], ["安克", 25], ["睡眠", 24], ["牛奶", 23], ["旅游", 22], ["粤菜", 21], ["哨兵", 20], ["网球", 19], ["营商环境", 18], ["保险", 18], ["免税店", 17], ["长沙话", 17], ["远光", 16], ["金丝玉", 15], ["代步车", 15], ["观山", 14]];
-    const trendData = [["7/21", 610], ["7/22", 908], ["7/23", 479], ["7/24", 554], ["7/25", 374], ["7/26", 355], ["7/27", 562], ["7/28", 584]];
-    const forestData = {"center": {"title": "群聊核心关注", "note": "“我”的发言分散在充电桩、道路规则与群内热点；个人长期兴趣证据不足，因此以群体高频关注为中心。"}, "branches": [{"title": "电车生活", "color": "#4de2ff", "topics": ["家充排障", "续航置换", "哨兵模式", "售后代步", "远光应对"]}, {"title": "吃喝探索", "color": "#7b61ff", "topics": ["啤酒口感", "山姆补货", "鱼粉地图", "粤菜争论", "观山咖啡"]}, {"title": "本地生活", "color": "#3bf0c3", "topics": ["长沙方言", "暴雨预警", "营商环境", "包厢推荐", "玉兰路封门"]}, {"title": "健康家庭", "color": "#ffd787", "topics": ["身高睡眠", "牛奶耐受", "网球补给", "失眠恢复", "亲子出游"]}, {"title": "消费投资", "color": "#ff7ab6", "topics": ["长鑫认购", "免税香烟", "充电配件", "Visa选择", "金丝玉"]}, {"title": "人际观察", "color": "#5b8cff", "topics": ["婚恋奇闻", "群友互损", "老板秘书", "家庭陪护", "社交约局"]}]};
+    const words = [["Codex", 88], ["GPT", 50], ["额度", 30], ["WorkBuddy", 26], ["Agent", 24], ["Token", 22], ["封号", 20], ["重置", 18], ["Sol", 16], ["Skill", 16], ["中转", 16], ["订阅", 14], ["玻利维亚", 12], ["Kimi", 12], ["tibo", 11], ["量化", 10], ["长鑫", 10], ["相亲", 10], ["手机号", 9], ["OpenClaw", 8], ["飞书", 8], ["电费", 7], ["羽毛球", 6], ["特斯拉", 6]];
+    const reportType = '周报';
+    const trendData = [["07/24", 521], ["07/25", 363], ["07/26", 151], ["07/27", 731], ["07/28", 1120], ["07/29", 566], ["07/30", 708], ["07/31", 345]];
+    const forestData = {"center": {"title": "AI工具与效率进化", "note": "风林-杨主导的 AI 技术交流群：本周围绕 Codex/GPT 额度、Agent 工作流、模型选型与 AI 对工作方式的冲击展开，核心是把 AI 从玩具卷成生产力。"}, "branches": [{"title": "额度与账号", "icon": "💳", "color": "#4de2ff", "topics": ["Codex重置", "玻利维亚区", "giffgaff封号", "中转站", "订阅焦虑"]}, {"title": "Agent工作流", "icon": "🤖", "color": "#5b8cff", "topics": ["Goal模式", "任务拆分", "token节能", "飞书编排", "多模型执行"]}, {"title": "模型选型", "icon": "🧠", "color": "#af7ce8", "topics": ["GPT5.6 Sol", "K3", "GLM5.2", "Qwen3.8", "本地部署"]}, {"title": "副业创业", "icon": "🚀", "color": "#f0a33b", "topics": ["AI相亲匹配", "H5产品", "自媒体选题", "WorkBuddy外包"]}, {"title": "投资宏观", "icon": "📈", "color": "#3bf0c3", "topics": ["长鑫打新", "合肥VC", "AI泡沫", "日元套利", "量化割韭菜"]}, {"title": "职场生活", "icon": "💼", "color": "#ff6b8a", "topics": ["AI废人论", "魔法对轰", "羽毛球心率", "美食版图"]}]};
+    const relData = {"note": "AI 技术交流群，群友以程序员、运营、创业者和副业玩家为主，关系以「情报互通」和「技术互怼」为主，热闹里带着互相抬杠的默契。", "nodes": [{"id": "风林-杨", "weight": 42, "color": "#5b8cff", "role": "群主发动机"}, {"id": "张硕", "weight": 40, "color": "#4de2ff", "role": "实验狂魔"}, {"id": "Lemon-学生", "weight": 36, "color": "#3bf0c3", "role": "省钱军师"}, {"id": "森岚", "weight": 28, "color": "#f0a33b", "role": "副业诗人"}, {"id": "星淇", "weight": 26, "color": "#af7ce8", "role": "羊毛猎人"}, {"id": "右下角的卷毛先生", "weight": 26, "color": "#ff6b8a", "role": "摸鱼玩家"}, {"id": "想想", "weight": 24, "color": "#ffd93d", "role": "民间极客"}, {"id": "文森特", "weight": 23, "color": "#ffa94d", "role": "理论派"}, {"id": "安亦1", "weight": 20, "color": "#74b9ff", "role": "卡圈情报员"}, {"id": "四叶草", "weight": 18, "color": "#7bed9f", "role": "生活百事通"}, {"id": "SayHello", "weight": 17, "color": "#e056fd", "role": "打新欧皇"}], "links": [{"source": "张硕", "target": "风林-杨", "type": "欢喜冤家", "strength": 9}, {"source": "张硕", "target": "Lemon-学生", "type": "搭子", "strength": 7}, {"source": "风林-杨", "target": "Lemon-学生", "type": "商业互吹", "strength": 6}, {"source": "森岚", "target": "风林-杨", "type": "商业互吹", "strength": 6}, {"source": "星淇", "target": "张硕", "type": "情报互通", "strength": 6}, {"source": "安亦1", "target": "Lemon-学生", "type": "基友", "strength": 6}, {"source": "右下角的卷毛先生", "target": "Lemon-学生", "type": "搭子", "strength": 5}, {"source": "右下角的卷毛先生", "target": "风林-杨", "type": "大佬与萌新", "strength": 5}, {"source": "想想", "target": "森岚", "type": "商业互吹", "strength": 5}, {"source": "文森特", "target": "张硕", "type": "欢喜冤家", "strength": 5}, {"source": "四叶草", "target": "森岚", "type": "搭子", "strength": 4}, {"source": "SayHello", "target": "风林-杨", "type": "商业互吹", "strength": 4}, {"source": "星淇", "target": "Lemon-学生", "type": "捧哏与逗哏", "strength": 4}, {"source": "想想", "target": "张硕", "type": "搭子", "strength": 4}]};
+    const activeStarsData = [["风林-杨", 777], ["张硕", 687], ["Lemon-学生", 535], ["森岚", 270], ["星淇", 227], ["右下角的卷毛先生", 226], ["想想", 210], ["文森特", 207], ["四叶草", 148], ["安亦1", 134], ["SayHello", 125], ["simple", 92], ["桃子请来的逗比-IT", 77], ["Zevin", 65], ["老实人", 54]];
 
-    (function renderTopicForest() {
-      const forest = document.getElementById('topic-forest');
-      const note = document.getElementById('forest-note');
-      const svgNs = 'http://www.w3.org/2000/svg';
-      const palette = ['#4de2ff', '#7b61ff', '#3bf0c3', '#ffd787', '#ff7ab6', '#5b8cff'];
-      const label = (value) => Array.from(String(value || '')).slice(0, 12).join('');
-      const element = (tag, attributes = {}) => {
-        const node = document.createElementNS(svgNs, tag);
-        Object.entries(attributes).forEach(([key, value]) => node.setAttribute(key, value));
-        return node;
-      };
-      const text = (value, x, y, size, fill, weight = '600') => {
-        const node = element('text', {
-          x,
-          y,
-          fill,
-          'font-size': size,
-          'font-weight': weight,
-          'text-anchor': 'middle',
-          'dominant-baseline': 'middle',
-          'font-family': '"Microsoft YaHei", "PingFang SC", sans-serif'
-        });
-        node.textContent = label(value);
-        return node;
-      };
-      const node = (x, y, width, height, title, color, options = {}) => {
-        const group = element('g', { 'aria-label': label(title) });
-        const radius = options.radius || height / 2;
-        group.appendChild(element('rect', {
-          x: x - width / 2,
-          y: y - height / 2,
-          width,
-          height,
-          rx: radius,
-          fill: options.fill || 'rgba(8, 16, 34, 0.95)',
-          stroke: color,
-          'stroke-width': options.strokeWidth || 1.5,
-          'stroke-opacity': options.strokeOpacity || 0.9
-        }));
-        group.appendChild(text(title, x, y + (options.note ? -8 : 0), options.size || 15, options.textColor || '#f6fbff', options.weight || '700'));
-        if (options.note) group.appendChild(text(options.note, x, y + 14, 11, '#8ea4d4', '500'));
-        return group;
-      };
-      const center = forestData && forestData.center ? forestData.center : {};
-      const branches = Array.isArray(forestData && forestData.branches)
-        ? forestData.branches.slice(0, 6).filter((branch) => branch && branch.title)
-        : [];
+    (function renderRelationships() {
+      try {
+      const container = document.getElementById('relationship-graph');
+      const legend = document.getElementById('rel-legend');
+      const tooltip = document.getElementById('rel-tooltip');
+      const note = document.getElementById('rel-note');
 
-      if (!branches.length) {
-        forest.closest('.section').hidden = true;
+      const nodes = Array.isArray(relData && relData.nodes) ? relData.nodes : [];
+      const links = Array.isArray(relData && relData.links) ? relData.links : [];
+
+      if (!nodes.length || !links.length) {
+        const section = container && container.closest('.section');
+        if (section) section.hidden = true;
         return;
       }
 
-      forest.replaceChildren();
-      const width = 960;
-      const height = 660;
-      const centerX = width / 2;
-      const centerY = height / 2;
-      note.textContent = String(center.note || '群聊长期关注');
+      // Guard: D3 not loaded → silently skip
+      if (typeof d3 === 'undefined') {
+        const section = container && container.closest('.section');
+        if (section) section.hidden = true;
+        return;
+      }
 
-      branches.forEach((branch, index) => {
-        const angle = -Math.PI / 2 + (Math.PI * 2 * index) / branches.length;
-        const color = branch.color || palette[index % palette.length];
-        const branchX = centerX + Math.cos(angle) * 160;
-        const branchY = centerY + Math.sin(angle) * 160;
-        const topics = Array.isArray(branch.topics) ? branch.topics.slice(0, 6) : [];
-        const perpendicularX = -Math.sin(angle);
-        const perpendicularY = Math.cos(angle);
+      if (note && relData.note) note.textContent = String(relData.note);
 
-        forest.appendChild(element('path', {
-          d: `M ${centerX} ${centerY} Q ${(centerX + branchX) / 2} ${(centerY + branchY) / 2 - 22} ${branchX} ${branchY}`,
-          fill: 'none',
-          stroke: color,
-          'stroke-width': 2.5,
-          'stroke-opacity': 0.66
-        }));
-
-        topics.forEach((topic, topicIndex) => {
-          const offset = (topicIndex - (topics.length - 1) / 2) * (topics.length > 4 ? 38 : 50);
-          const leafX = branchX + Math.cos(angle) * 120 + perpendicularX * offset;
-          const leafY = branchY + Math.sin(angle) * 120 + perpendicularY * offset;
-          forest.appendChild(element('path', {
-            d: `M ${branchX} ${branchY} Q ${(branchX + leafX) / 2} ${(branchY + leafY) / 2} ${leafX} ${leafY}`,
-            fill: 'none',
-            stroke: color,
-            'stroke-width': 1.5,
-            'stroke-opacity': 0.45
-          }));
-          const leafTitle = label(topic);
-          const leafWidth = Math.min(158, Math.max(96, Array.from(leafTitle).length * 15 + 24));
-          forest.appendChild(node(leafX, leafY, leafWidth, 34, leafTitle, color, {
-            size: 12,
-            weight: '600',
-            strokeOpacity: 0.5,
-            fill: 'rgba(8, 16, 34, 0.9)'
-          }));
-        });
-
-        forest.appendChild(node(branchX, branchY, 136, 44, branch.title, color, {
-          size: 14,
-          fill: 'rgba(13, 27, 53, 0.98)'
-        }));
+      const relTypes = [...new Set(links.map(function (l) { return l.type; }))];
+      const relColor = {
+        '基友': '#3bf0c3',
+        '塑料闺蜜': '#ff6b98',
+        '女神与舔狗': '#ffd93d',
+        '欢喜冤家': '#ff6b6b',
+        '姐妹淘': '#e056fd',
+        '商业互吹': '#ffa94d',
+        '捧哏与逗哏': '#4de2ff',
+        '搭子': '#7bed9f',
+        '师徒': '#a29bfe',
+        '大佬与萌新': '#fd79a8',
+        '点赞之交': '#74b9ff',
+        '竞争对手': '#fdcb6e'
+      };
+      const defaultColors = ['#3bf0c3', '#ff6b98', '#ffd93d', '#ff6b6b', '#e056fd', '#ffa94d', '#4de2ff', '#7bed9f'];
+      var colorMap = {};
+      relTypes.forEach(function (t, i) {
+        colorMap[t] = relColor[t] || defaultColors[i % defaultColors.length];
       });
 
-      forest.appendChild(node(centerX, centerY, 190, 64, center.title || '群聊核心关注', '#ffffff', {
-        note: center.note || '长期关注',
-        size: 17,
-        fill: 'rgba(25, 53, 91, 0.98)',
-        strokeWidth: 2,
-        strokeOpacity: 1
+      // Build legend
+      legend.innerHTML = relTypes.map(function (t) {
+        return '<span class="legend-item"><span class="legend-dot" style="background:' + colorMap[t] + '"></span>' + t + '</span>';
+      }).join('');
+
+      var w = container.clientWidth || 860;
+      var h = 560;
+      container.style.height = h + 'px';
+
+      var svg = d3.select(container)
+        .append('svg')
+        .attr('width', w)
+        .attr('height', h)
+        .attr('viewBox', [0, 0, w, h])
+        .style('display', 'block');
+
+      var g = svg.append('g');
+
+      // Zoom
+      svg.call(d3.zoom().scaleExtent([0.3, 3]).on('zoom', function (event) {
+        g.attr('transform', event.transform);
       }));
+
+      // Arrow markers for links
+      relTypes.forEach(function (t) {
+        svg.append('defs').append('marker')
+          .attr('id', 'arrow-' + t.replace(/\s/g, ''))
+          .attr('viewBox', '0 -5 10 10')
+          .attr('refX', 30)
+          .attr('refY', 0)
+          .attr('markerWidth', 8)
+          .attr('markerHeight', 8)
+          .attr('orient', 'auto')
+          .append('path')
+          .attr('d', 'M0,-5L10,0L0,5')
+          .attr('fill', colorMap[t] || '#888');
+      });
+
+      // Build simulation
+      var simulation = d3.forceSimulation(nodes)
+        .force('link', d3.forceLink(links).id(function (d) { return d.id; }).distance(130).strength(0.4))
+        .force('charge', d3.forceManyBody().strength(-380))
+        .force('center', d3.forceCenter(w / 2, h / 2))
+        .force('collision', d3.forceCollide(52));
+
+      // Draw links
+      var link = g.append('g')
+        .selectAll('line')
+        .data(links)
+        .join('line')
+        .attr('stroke', function (d) { return colorMap[d.type] || '#555'; })
+        .attr('stroke-width', function (d) { return (d.strength || 5) * 0.7; })
+        .attr('stroke-dasharray', function (d) {
+          var unstable = ['塑料闺蜜', '欢喜冤家', '竞争对手'];
+          return unstable.indexOf(d.type) >= 0 ? '6,4' : 'none';
+        })
+        .attr('stroke-opacity', 0.7)
+        .attr('marker-end', function (d) { return 'url(#arrow-' + d.type.replace(/\s/g, '') + ')'; });
+
+      // Link labels
+      var linkLabel = g.append('g')
+        .selectAll('text')
+        .data(links)
+        .join('text')
+        .text(function (d) { return d.type; })
+        .attr('fill', function (d) { return colorMap[d.type] || '#888'; })
+        .attr('font-size', 11)
+        .attr('font-weight', 600)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('paint-order', 'stroke')
+        .attr('stroke', 'rgba(5,8,22,0.85)')
+        .attr('stroke-width', 3)
+        .attr('stroke-linecap', 'round')
+        .attr('stroke-linejoin', 'round')
+        .style('pointer-events', 'none');
+
+      // Draw nodes
+      var node = g.append('g')
+        .selectAll('g')
+        .data(nodes)
+        .join('g')
+        .call(d3.drag()
+          .on('start', function (event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+          })
+          .on('drag', function (event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+          })
+          .on('end', function (event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+          })
+        );
+
+      // Node circles
+      node.append('circle')
+        .attr('r', function (d) { return Math.min(48, (d.weight || 10) + 14); })
+        .attr('fill', function (d) { return d.color || '#5b8cff'; })
+        .attr('stroke', function (d) { return d.color || '#5b8cff'; })
+        .attr('stroke-width', 2)
+        .attr('stroke-opacity', 0.5)
+        .style('filter', 'drop-shadow(0 0 8px rgba(91,140,255,0.3))')
+        .style('cursor', 'pointer');
+
+      // Glow ring
+      node.append('circle')
+        .attr('r', function (d) { return Math.min(48, (d.weight || 10) + 14) + 4; })
+        .attr('fill', 'none')
+        .attr('stroke', function (d) { return d.color || '#5b8cff'; })
+        .attr('stroke-width', 1)
+        .attr('stroke-opacity', 0.2);
+
+      // Node labels
+      node.append('text')
+        .text(function (d) { return Array.from(String(d.id || '')).slice(0, 8).join(''); })
+        .attr('fill', '#ffffff')
+        .attr('font-size', function (d) { return Math.min(14, (d.weight || 10) + 7); })
+        .attr('font-weight', 700)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif')
+        .style('pointer-events', 'none');
+
+      // Node subtitle (relationship role)
+      node.append('text')
+        .text(function (d) { return d.role || ''; })
+        .attr('fill', 'rgba(255,255,255,0.6)')
+        .attr('font-size', 10)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('dy', function (d) { return (Math.min(48, (d.weight || 10) + 14)) + 14; })
+        .attr('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif')
+        .style('pointer-events', 'none');
+
+      // Hover tooltip
+      node.on('mouseover', function (event, d) {
+        var rels = links.filter(function (l) {
+          return (l.source.id || l.source) === d.id || (l.target.id || l.target) === d.id;
+        });
+        var html = '<strong>' + d.id + '</strong>';
+        if (d.role) html += '<br>角色：' + d.role;
+        html += '<br>互动关系：';
+        rels.slice(0, 5).forEach(function (r) {
+          var peer = (r.source.id || r.source) === d.id ? (r.target.id || r.target) : (r.source.id || r.source);
+          html += '<br> · → ' + peer + ' <span style="color:' + (colorMap[r.type] || '#888') + '">' + r.type + '</span>';
+        });
+        tooltip.innerHTML = html;
+        tooltip.style.opacity = 1;
+        var rect = container.getBoundingClientRect();
+        tooltip.style.left = Math.min(event.clientX - rect.left + 12, w - 260) + 'px';
+        tooltip.style.top = Math.max(event.clientY - rect.top - 10, 10) + 'px';
+      }).on('mousemove', function (event) {
+        var rect = container.getBoundingClientRect();
+        tooltip.style.left = Math.min(event.clientX - rect.left + 12, w - 260) + 'px';
+        tooltip.style.top = Math.max(event.clientY - rect.top - 10, 10) + 'px';
+      }).on('mouseout', function () {
+        tooltip.style.opacity = 0;
+      });
+
+      // Physics tick
+      simulation.on('tick', function () {
+        link
+          .attr('x1', function (d) { return d.source.x; })
+          .attr('y1', function (d) { return d.source.y; })
+          .attr('x2', function (d) { return d.target.x; })
+          .attr('y2', function (d) { return d.target.y; });
+
+        linkLabel
+          .attr('x', function (d) { return (d.source.x + d.target.x) / 2; })
+          .attr('y', function (d) { return (d.source.y + d.target.y) / 2; });
+
+        node.attr('transform', function (d) { return 'translate(' + d.x + ',' + d.y + ')'; });
+      });
+      } catch(e) { console.warn('关系图谱渲染失败:', e); }
     })();
 
-    if (window.WordCloud) {
-      WordCloud(document.getElementById('cloud'), {
-        list: words,
-        gridSize: 10,
-        weightFactor: 3,
-        fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
-        backgroundColor: 'rgba(0,0,0,0)',
-        rotateRatio: 0.35,
-        minSize: 16,
-        shrinkToFit: true,
-        drawOutOfBound: false,
-        color: function () {
-          const colors = [
-            '#4de2ff',
-            '#7b61ff',
-            '#5b8cff',
-            '#9c7dff',
-            '#6a5acd',
-            '#b39ddb'
-          ];
+    (function renderActiveStarsChart() {
+      try {
+      const container = document.getElementById('active-stars-chart');
+      const data = Array.isArray(activeStarsData) ? activeStarsData : [];
+      if (!container || !data.length) return;
 
-          return colors[Math.floor(Math.random() * colors.length)];
-        }
+      const names = data.map(function (d) { return d[0]; });
+      const values = data.map(function (d) { return d[1]; });
+      var maxVal = 0;
+      values.forEach(function (v) { if (v > maxVal) maxVal = v; });
+      maxVal = Math.ceil(maxVal * 1.12);
+
+      var w = container.clientWidth || 820;
+      var margin = { top: 14, right: 72, bottom: 14, left: 0 };
+      var rowH = 36;
+      var gap = 6;
+      var barH = rowH - gap;
+      var h = data.length * rowH + margin.top + margin.bottom;
+
+      // measure max name width using canvas (reliable for CJK)
+      var meas = document.createElement('canvas').getContext('2d');
+      meas.font = '13px "Microsoft YaHei", "PingFang SC", sans-serif';
+      var maxNameW = 0;
+      names.forEach(function (n) {
+        var bw = meas.measureText(n).width;
+        if (bw > maxNameW) maxNameW = bw;
       });
-    }
+      margin.left = Math.max(maxNameW + 20, 72);
+
+      var plotW = w - margin.left - margin.right;
+
+      var svg = d3.select(container)
+        .append('svg')
+        .attr('width', w)
+        .attr('height', h)
+        .attr('viewBox', [0, 0, w, h])
+        .style('overflow', 'visible');
+
+      var defs = svg.append('defs');
+      data.forEach(function (d, i) {
+        var ratio = d[1] / maxVal;
+        var gradId = 'bar-grad-' + i;
+        var grad = defs.append('linearGradient')
+          .attr('id', gradId)
+          .attr('x1', '0%').attr('y1', '0%')
+          .attr('x2', '100%').attr('y2', '0%');
+        grad.append('stop').attr('offset', '0%')
+          .attr('stop-color', ratio > 0.7 ? '#4de2ff' : ratio > 0.4 ? '#5b8cff' : '#7b61ff')
+          .attr('stop-opacity', 0.85);
+        grad.append('stop').attr('offset', '100%')
+          .attr('stop-color', ratio > 0.7 ? '#5b8cff' : ratio > 0.4 ? '#7b61ff' : '#a29bfe')
+          .attr('stop-opacity', 0.55);
+      });
+
+      var y = d3.scaleBand()
+        .domain(d3.range(data.length))
+        .range([margin.top, h - margin.bottom])
+        .padding(0.15);
+
+      var x = d3.scaleLinear()
+        .domain([0, maxVal])
+        .range([margin.left, w - margin.right]);
+
+      svg.append('g')
+        .selectAll('rect.bg')
+        .data(d3.range(data.length))
+        .join('rect')
+        .attr('class', 'bg')
+        .attr('x', margin.left)
+        .attr('y', function (d) { return y(d); })
+        .attr('height', y.bandwidth())
+        .attr('width', plotW)
+        .attr('fill', 'rgba(255,255,255,0.02)')
+        .attr('rx', 4);
+
+      svg.append('g')
+        .selectAll('rect.bar')
+        .data(data)
+        .join('rect')
+        .attr('class', 'bar')
+        .attr('y', function (d, i) { return y(i); })
+        .attr('x', margin.left)
+        .attr('height', y.bandwidth())
+        .attr('width', function (d) { return Math.max(4, x(d[1]) - margin.left); })
+        .attr('fill', function (d, i) { return 'url(#bar-grad-' + i + ')'; })
+        .attr('rx', function (d) { return (y.bandwidth()) / 2; })
+        .attr('ry', function (d) { return (y.bandwidth()) / 2; });
+
+      // name labels
+      svg.append('g')
+        .selectAll('text.name')
+        .data(data)
+        .join('text')
+        .attr('class', 'name')
+        .attr('x', margin.left - 8)
+        .attr('y', function (d, i) { return y(i) + y.bandwidth() / 2; })
+        .attr('fill', '#dbe7ff')
+        .attr('font-size', 13)
+        .attr('font-weight', 600)
+        .attr('text-anchor', 'end')
+        .attr('dominant-baseline', 'middle')
+        .attr('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif')
+        .text(function (d) { return d[0]; });
+
+      // value labels at bar end
+      svg.append('g')
+        .selectAll('text.val')
+        .data(data)
+        .join('text')
+        .attr('class', 'val')
+        .attr('x', function (d) { return Math.max(x(d[1]) + 8, margin.left + 8); })
+        .attr('y', function (d, i) { return y(i) + y.bandwidth() / 2; })
+        .attr('fill', '#4de2ff')
+        .attr('font-size', 13)
+        .attr('font-weight', 700)
+        .attr('dominant-baseline', 'middle')
+        .attr('font-family', '"Microsoft YaHei", "PingFang SC", sans-serif')
+        .text(function (d) { return d[1]; });
+
+      // grid lines
+      var ticks = x.ticks(5);
+      svg.append('g')
+        .selectAll('line.grid')
+        .data(ticks)
+        .join('line')
+        .attr('class', 'grid')
+        .attr('x1', function (d) { return x(d); })
+        .attr('x2', function (d) { return x(d); })
+        .attr('y1', margin.top)
+        .attr('y2', h - margin.bottom)
+        .attr('stroke', 'rgba(90, 150, 255, 0.1)')
+        .attr('stroke-width', 1)
+        .attr('stroke-dasharray', '4,4');
+      } catch(e) { console.warn('活跃之星图表渲染失败:', e); }
+    })();
+
+    (function renderTopicForest() {
+      try {
+        const svg = document.getElementById('topic-forest');
+        const noteEl = document.getElementById('forest-note');
+        if (!svg || !forestData || !forestData.center) return;
+
+        // 已有预渲染内容（LLM 生成）→ 只设备注
+        if (svg.children.length > 0) {
+          if (noteEl) noteEl.textContent = String(forestData.center.note || '');
+          return;
+        }
+
+        if (noteEl) noteEl.textContent = String(forestData.center.note || '');
+
+        var W = 1280, H = 760, cx = 640, cy = 380;
+        var branchDist = 175, leafDist = 310;
+        var NS = 'http://www.w3.org/2000/svg';
+
+        function mk(tag, attrs) {
+          var el = document.createElementNS(NS, tag);
+          for (var k in attrs) el.setAttribute(k, attrs[k]);
+          return el;
+        }
+
+        // 中心圆
+        svg.appendChild(mk('circle', {cx:cx, cy:cy, r:90, fill:'#1a2db5', stroke:'#5b7dff', 'stroke-width':3}));
+        svg.appendChild(mk('circle', {cx:cx, cy:cy, r:80, fill:'none', stroke:'rgba(255,255,255,0.1)', 'stroke-width':1}));
+
+        // 中心文字（自动换行）
+        var title = forestData.center.title || '核心关注';
+        var half = Math.ceil(title.length / 2);
+        var lines = title.length > 6 ? [title.slice(0, half), title.slice(half)] : [title];
+        lines.forEach(function(line, i) {
+          var t = mk('text', {x:cx, y:cy + (i - (lines.length-1)/2)*24, fill:'#ffffff',
+            'font-size': '21', 'font-weight':'800', 'text-anchor':'middle', 'dominant-baseline':'middle',
+            'font-family':'Microsoft YaHei, PingFang SC, sans-serif'});
+          t.textContent = line;
+          svg.appendChild(t);
+        });
+
+        if (!forestData.branches || !forestData.branches.length) return;
+
+        var branches = forestData.branches, n = branches.length;
+
+        branches.forEach(function(branch, i) {
+          var angle = (i / n) * 2 * Math.PI - Math.PI / 2;
+          var color = branch.color || '#5b8cff';
+          var bx = cx + Math.cos(angle) * branchDist;
+          var by = cy + Math.sin(angle) * branchDist;
+
+          // 连线：中心 → 分支
+          svg.appendChild(mk('line', {x1:cx, y1:cy, x2:bx, y2:by,
+            stroke:color, 'stroke-width':'5', 'stroke-linecap':'round', 'stroke-opacity':'0.5'}));
+
+          // 分支卡
+          var bw = 180, bh = 50;
+          svg.appendChild(mk('rect', {x:bx-bw/2, y:by-bh/2, width:bw, height:bh, rx:'8', fill:color}));
+          svg.appendChild(mk('rect', {x:bx-bw/2, y:by+bh/2-5, width:bw, height:'5', rx:'2',
+            fill:'rgba(255,255,255,0.3)'}));
+
+          // 分支图标
+          if (branch.icon) {
+            var ic = mk('text', {x:bx-bw/2+24, y:by+1, fill:'#101623', 'font-size':'24',
+              'text-anchor':'middle', 'dominant-baseline':'middle',
+              'font-family':'Apple Color Emoji, Segoe UI Emoji, sans-serif'});
+            ic.textContent = branch.icon;
+            svg.appendChild(ic);
+          }
+
+          // 分支标题
+          var bt = mk('text', {x:bx + (branch.icon ? 18 : 0), y:by+1, fill:'#101623',
+            'font-size':'16', 'font-weight':'700', 'text-anchor':'middle', 'dominant-baseline':'middle',
+            'font-family':'Microsoft YaHei, PingFang SC, sans-serif'});
+          bt.textContent = branch.title || '';
+          svg.appendChild(bt);
+
+          // 叶子话题
+          if (branch.topics && branch.topics.length) {
+            var lc = branch.topics.length;
+            var spread = Math.min(Math.PI / 2.2, Math.PI / (lc + 1) * 2);
+            var startA = angle - spread / 2;
+
+            branch.topics.forEach(function(topic, ti) {
+              var la = startA + (ti / Math.max(1, lc - 1)) * spread;
+              var lx = cx + Math.cos(la) * leafDist;
+              var ly = cy + Math.sin(la) * leafDist;
+
+              svg.appendChild(mk('line', {x1:bx, y1:by, x2:lx, y2:ly,
+                stroke:color, 'stroke-width':'2.5', 'stroke-linecap':'round', 'stroke-opacity':'0.35'}));
+
+              var lw = 154, lh = 36;
+              svg.appendChild(mk('rect', {x:lx-lw/2, y:ly-lh/2, width:lw, height:lh, rx:'6',
+                fill:color, 'fill-opacity':'0.7'}));
+
+              var lt = mk('text', {x:lx, y:ly+1, fill:'#101623', 'font-size':'13', 'font-weight':'600',
+                'text-anchor':'middle', 'dominant-baseline':'middle',
+                'font-family':'Microsoft YaHei, PingFang SC, sans-serif'});
+              lt.textContent = topic;
+              svg.appendChild(lt);
+            });
+          }
+        });
+      } catch(e) { console.warn('话题森林渲染失败:', e); }
+    })();
+
+    (function renderWordCloud() {
+      try {
+      const cloudCanvas = document.getElementById('cloud');
+      if (window.WordCloud && cloudCanvas && words && words.length) {
+        WordCloud(cloudCanvas, {
+          list: words,
+          gridSize: 10,
+          weightFactor: 3,
+          fontFamily: '"Microsoft YaHei", "PingFang SC", sans-serif',
+          backgroundColor: 'rgba(0,0,0,0)',
+          rotateRatio: 0.35,
+          minSize: 16,
+          shrinkToFit: true,
+          drawOutOfBound: false,
+          color: function () {
+            const colors = ['#4de2ff','#7b61ff','#5b8cff','#9c7dff','#6a5acd','#b39ddb'];
+            return colors[Math.floor(Math.random() * colors.length)];
+          }
+        });
+      }
+      } catch(e) { console.warn('词云渲染失败:', e); }
+    })();
 
     (function renderTrend() {
+      try {
       const canvas = document.getElementById('trend');
       if (!canvas || !trendData || !trendData.length) return;
 
@@ -1084,16 +1776,25 @@
       ctx.fillStyle = '#8ea4d4';
       ctx.font = '12px "Microsoft YaHei", "PingFang SC", sans-serif';
       ctx.textAlign = 'center';
-      const labelStep = points.length <= 8 ? 1 : points.length <= 16 ? 2 : points.length <= 24 ? 3 : 4;
+      // 日报 → 按小时显示（约24点），周报/月报 → 按天显示
+      const isHourly = (reportType === '日报' || trendData.length >= 20);
+      let labelStep;
+      if (isHourly) {
+        labelStep = Math.max(1, Math.floor(points.length / 5)); // 显示约5-6个标签
+      } else {
+        labelStep = points.length <= 8 ? 1 : points.length <= 16 ? 2 : points.length <= 24 ? 3 : Math.ceil(points.length / 7);
+      }
       points.forEach((point, index) => {
         if (index === 0 || index === points.length - 1 || index % labelStep === 0) {
-          ctx.fillText(point.label, point.x, h - 12);
+          const label = isHourly ? point.label.replace(':00', '时') : point.label;
+          ctx.fillText(label, point.x, h - 12);
         }
       });
 
       ctx.textAlign = 'right';
       ctx.fillText(String(maxY), leftPad - 10, topPad + 4);
       ctx.fillText(String(minY), leftPad - 10, h - bottomPad + 4);
+      } catch(e) { console.warn('趋势图渲染失败:', e); }
     })();
   </script>
 </body>
