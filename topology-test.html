@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三级拓扑图 · 测试</title>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js"
+        onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js';document.head.appendChild(s)"></script>
+<style>
+  :root {
+    --bg: #050816;
+    --panel: linear-gradient(180deg, rgba(9,16,34,.92), rgba(6,11,24,.94));
+    --line: rgba(90,150,255,.20);
+    --line-soft: rgba(125,160,255,.14);
+    --text: #e8f1ff;
+    --muted: #9db4e6;
+    --cyan: #4de2ff;
+    --blue: #5b8cff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(circle at 12% -10%, rgba(91,140,255,.22), transparent 30%),
+      radial-gradient(circle at 88% 0%, rgba(77,226,255,.14), transparent 26%),
+      linear-gradient(180deg, #040712 0%, #081022 52%, #050816 100%);
+    min-height: 100vh;
+    padding: 30px 20px 48px;
+  }
+  .page { max-width: 600px; margin: 0 auto; }
+
+  header {
+    display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  h1 {
+    margin: 0; font-size: 22px; letter-spacing: 2px; font-weight: 700;
+    background: linear-gradient(90deg, #7ff0ff, #5b8cff);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .sub { color: var(--muted); font-size: 13px; padding-bottom: 3px; }
+  .tools { margin-left: auto; display: flex; gap: 10px; }
+  button {
+    background: rgba(77,226,255,.08); color: #aeeaff;
+    border: 1px solid rgba(77,226,255,.30);
+    padding: 8px 16px; border-radius: 999px; cursor: pointer;
+    font-size: 13px; font-family: inherit; transition: .2s;
+  }
+  button:hover { background: rgba(77,226,255,.18); box-shadow: 0 0 16px rgba(77,226,255,.18); }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 14px;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: #c3d4f5;
+    padding: 5px 11px; border-radius: 9px; border: 1px solid transparent; cursor: default; transition: .2s;
+  }
+  .legend-item:hover { background: rgba(125,160,255,.10); border-color: rgba(125,160,255,.18); }
+  .legend-item .sw { width: 9px; height: 9px; border-radius: 50%; }
+
+  .canvas {
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    box-shadow: 0 0 46px rgba(77,226,255,.10);
+    overflow: hidden;
+  }
+  svg { display: block; width: 100%; height: auto; }
+
+  /* ---- svg elements ---- */
+  .pill-text { font-size: 15px; fill: #eaf3ff; letter-spacing: 1px; }
+  .leaf-pill-text { font-size: 13px; fill: #e2edff; letter-spacing: 1px; }
+  .root-text { font-size: 16px; fill: #fff; font-weight: 700; letter-spacing: 2px; }
+
+  /* ---- data table ---- */
+  .table-wrap {
+    margin-top: 16px; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 10px 18px; text-align: left; border-bottom: 1px solid var(--line-soft); }
+  th { color: var(--muted); font-weight: 500; }
+  td { color: #dbe7ff; }
+  td .sw { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
+  .badge {
+    display: inline-block; font-size: 11px; padding: 2px 9px; border-radius: 999px;
+    border: 1px solid rgba(125,160,255,.30); color: #a9c6f2; margin-right: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>三级拓扑图</h1>
+    <div class="sub" id="sub"></div>
+    <div class="tools">
+      <button id="reroll" type="button">换一组数据</button>
+      <button id="toggleTable" type="button">数据表格</button>
+    </div>
+  </header>
+
+  <div class="legend" id="legend"></div>
+
+  <div class="canvas">
+    <svg id="topo" viewBox="0 0 1200 1200" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+
+  <div class="table-wrap" id="tableWrap" hidden>
+    <table id="dataTable">
+      <thead>
+        <tr><th>层级</th><th>名称</th><th>所属分支</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------------- 常量 ---------------- */
+  var W = 1200, H = 1200;
+  var CX = W / 2, CY = H / 2;
+  var R_LEAF = 340;          // 树布局最外圈半径（更紧凑）
+  var ROOT_R = 44;           // 一级核心节点半径
+
+  /* 分支色板：8 个槽位，暗色表面已通过六项校验 */
+  var BRANCH_COLORS = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"];
+
+  /* ---------------- 测试数据 ---------------- */
+  var POOLS = {
+    "产品动态": ["新功能上线", "版本迭代", "用户体验", "功能优化", "灰度发布方案", "用户画像分析"],
+    "技术研发": ["架构优化", "性能提升", "缺陷修复", "自动化构建", "技术选型", "监控告警"],
+    "市场运营": ["活动策划", "渠道推广", "数据增长", "内容创作", "竞品分析", "转化漏斗"],
+    "用户反馈": ["好评收集", "问题跟踪", "满意度调研", "建议汇总", "客诉处理"],
+    "团队协作": ["会议纪要", "任务分配", "知识沉淀", "进度同步", "跨部门协作机制", "风险预警"],
+    "内容运营": ["选题策划", "内容排期", "阅读分析", "互动运营", "专题复盘"],
+    "客户服务": ["工单处理", "客诉跟进", "服务复盘", "SLA达标", "坐席排班"],
+    "财务预算": ["成本核算", "预算编制", "报销审核", "现金流", "财务分析"]
+  };
+
+  var INITIAL = {
+    name: "社群洞察",
+    children: [
+      { name: "产品动态", children: [{ name: "新功能上线" }, { name: "版本迭代" }, { name: "用户体验" }] },
+      { name: "技术研发", children: [{ name: "架构优化" }, { name: "性能提升" }, { name: "缺陷修复" }, { name: "自动化构建" }] },
+      { name: "市场运营", children: [{ name: "活动策划" }, { name: "渠道推广" }, { name: "数据增长" }] },
+      { name: "用户反馈", children: [{ name: "好评收集" }, { name: "问题跟踪" }, { name: "满意度调研" }] },
+      { name: "团队协作", children: [{ name: "会议纪要" }, { name: "任务分配" }, { name: "知识沉淀" }] }
+    ]
+  };
+
+  /* ---------------- 工具函数 ---------------- */
+  function hexA(hex, a) {
+    var n = parseInt(hex.slice(1), 16);
+    return "rgba(" + ((n >> 16) & 255) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")";
+  }
+  function branchColor(i) { return BRANCH_COLORS[i % BRANCH_COLORS.length]; }
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  /* 文本宽度测量（与渲染字体一致） */
+  var _ctx = document.createElement("canvas").getContext("2d");
+  function textW(s, px) {
+    _ctx.font = '500 ' + px + 'px "PingFang SC","Microsoft YaHei",system-ui,sans-serif';
+    return _ctx.measureText(s).width;
+  }
+
+  /* 三级：随机生成 3~8 个二级分支 */
+  function randomData() {
+    var keys = shuffle(Object.keys(POOLS));
+    var bc = 3 + Math.floor(Math.random() * 6);          // 3 ~ 8
+    var children = [];
+    for (var i = 0; i < bc; i++) {
+      var pool = POOLS[keys[i]];
+      var maxKids = bc >= 6 ? 3 : 4;                     // 分支多时控制叶子数量
+      var n = Math.min(pool.length, 2 + Math.floor(Math.random() * (maxKids - 1)));
+      children.push({ name: keys[i], children: shuffle(pool).slice(0, n).map(function (s) { return { name: s }; }) });
+    }
+    return { name: "社群洞察", children: children };
+  }
+
+  /* ---------------- 布局：径向树 + 防遮挡碰撞 ---------------- */
+  function layout(data) {
+    var root = d3.hierarchy(data);
+    var tree = d3.tree().size([2 * Math.PI, R_LEAF]);
+    tree.separation(function (a, b) { return a.parent === b.parent ? 1 : 1.3; });
+    tree(root);
+
+    var nodes = root.descendants();
+
+    /* 分支编号：二级及以上继承 */
+    root.children.forEach(function (c, i) { c.each(function (d) { d.branch = i; }); });
+    root.branch = -1;
+
+    /* 每个节点的理想屏幕坐标（辐射状） */
+    nodes.forEach(function (d) {
+      d.th = d.x;                                        // 角度（弧度）
+      d.px = CX + d.y * Math.cos(d.th - Math.PI / 2);
+      d.py = CY + d.y * Math.sin(d.th - Math.PI / 2);
+    });
+
+    /* 碰撞盒 */
+    nodes.forEach(function (d) {
+      if (d.depth === 1) {                              // 二级：药丸卡片（加大）
+        d.bw = textW(d.data.name, 15) + 28;
+        d.bh = 42;
+        d.bcx = d.px; d.bcy = d.py;
+      } else if (d.depth === 2) {                       // 三级：小药丸卡片
+        d.bw = textW(d.data.name, 13) + 16;
+        d.bh = 30;
+        d.bcx = d.px; d.bcy = d.py;
+      }
+    });
+
+    /* 碰撞消解：沿最小渗透轴把互相遮挡的盒子推开（根节点不参与） */
+    var list = nodes.filter(function (d) { return d.depth >= 1; });
+    for (var it = 0; it < 400; it++) {
+      var moved = false;
+      for (var i = 0; i < list.length; i++) {
+        for (var j = i + 1; j < list.length; j++) {
+          var A = list[i], B = list[j];
+          var hw = (A.bw + B.bw) / 2, hh = (A.bh + B.bh) / 2;
+          var dx = B.bcx - A.bcx, dy = B.bcy - A.bcy;
+          var ox = hw - Math.abs(dx), oy = hh - Math.abs(dy);
+          if (ox <= 0 || oy <= 0) continue;
+          moved = true;
+          var sx = dx >= 0 ? 1 : -1, sy = dy >= 0 ? 1 : -1;
+          if (ox < oy) {
+            var px_ = (hw - Math.abs(dx)) / 2;
+            A.bcx -= sx * px_; B.bcx += sx * px_;
+          } else {
+            var py_ = (hh - Math.abs(dy)) / 2;
+            A.bcy -= sy * py_; B.bcy += sy * py_;
+          }
+        }
+      }
+      if (!moved) break;
+    }
+
+    /* 由碰撞后的盒子推导最终几何 */
+    list.forEach(function (d) {
+      d.cx = d.bcx; d.cy = d.bcy;
+    });
+
+    return root;
+  }
+
+  /* 矩形边框上的交点（沿方向 dir 射出） */
+  function rectBorder(px, py, w, h, dirX, dirY) {
+    var ux = dirX, uy = dirY;
+    var t = Math.min(
+      (w / 2) / (Math.abs(ux) || 1e-9),
+      (h / 2) / (Math.abs(uy) || 1e-9)
+    );
+    return [px + ux * t, py + uy * t];
+  }
+
+  /* 直线连接 */
+  function linkPath(x1, y1, x2, y2) {
+    return "M " + x1.toFixed(2) + " " + y1.toFixed(2) + " L " + x2.toFixed(2) + " " + y2.toFixed(2);
+  }
+
+  function linkGeometry(nodes) {
+    var links = [];
+    nodes.filter(function (d) { return d.depth >= 1; }).forEach(function (d) {
+      var p = d.parent, x1, y1, x2, y2;
+      if (d.depth === 1) {
+        var r1 = Math.hypot(d.cx - CX, d.cy - CY) || 1;
+        var dux = (d.cx - CX) / r1, duy = (d.cy - CY) / r1;
+        x1 = CX + dux * ROOT_R; y1 = CY + duy * ROOT_R;          // 核心节点边缘
+        var bp = rectBorder(d.cx, d.cy, d.bw, d.bh, -dux, -duy); // 药丸内缘
+        x2 = bp[0]; y2 = bp[1];
+      } else {
+        var r2 = Math.hypot(d.cx - p.cx, d.cy - p.cy) || 1;
+        var dux2 = (d.cx - p.cx) / r2, duy2 = (d.cy - p.cy) / r2;
+        var bp2 = rectBorder(p.cx, p.cy, p.bw, p.bh, dux2, duy2);    // 二级药丸外缘
+        var bp3 = rectBorder(d.cx, d.cy, d.bw, d.bh, -dux2, -duy2);  // 三级药丸内缘
+        x1 = bp2[0]; y1 = bp2[1];
+        x2 = bp3[0]; y2 = bp3[1];
+      }
+      links.push({ d: d, branch: d.branch, depth: d.depth, path: linkPath(x1, y1, x2, y2) });
+    });
+    return links;
+  }
+
+  /* ---------------- SVG 元素 ---------------- */
+  var svg = d3.select("#topo");
+  var defs = svg.append("defs");
+
+  defs.append("radialGradient").attr("id", "rootGrad").attr("cx", "50%").attr("cy", "35%").attr("r", "75%")
+    .selectAll("stop").data([
+      { o: "0%", c: "#7ff0ff" }, { o: "55%", c: "#3fb8ff" }, { o: "100%", c: "#2b6fe8" }
+    ]).join("stop").attr("offset", function (d) { return d.o; }).attr("stop-color", function (d) { return d.c; });
+
+  defs.append("radialGradient").attr("id", "coreGlow")
+    .selectAll("stop").data([
+      { o: "0%", c: "rgba(77,226,255,.20)" }, { o: "100%", c: "rgba(77,226,255,0)" }
+    ]).join("stop").attr("offset", function (d) { return d.o; }).attr("stop-color", function (d) { return d.c; });
+
+  defs.append("filter").attr("id", "soft").attr("x", "-60%").attr("y", "-60%").attr("width", "220%").attr("height", "220%")
+    .append("feGaussianBlur").attr("stdDeviation", "9");
+
+  defs.append("filter").attr("id", "glow").attr("x", "-90%").attr("y", "-90%").attr("width", "280%").attr("height", "280%")
+    .append("feGaussianBlur").attr("stdDeviation", "5").attr("result", "b");
+  defs.select("#glow").append("feMerge").selectAll("feMergeNode")
+    .data(["b", "SourceGraphic"]).join("feMergeNode").attr("in", function (d) { return d; });
+
+  var gFx = svg.append("g");      // 装饰
+  var gRings = svg.append("g");   // 轨道环
+  var gLinks = svg.append("g");   // 连线
+  var gNodes = svg.append("g");   // 节点
+
+  /* 一次性装饰：中心辉光 + 背景星点 + 轨道环 */
+  gFx.append("circle").attr("cx", CX).attr("cy", CY).attr("r", 160).attr("fill", "url(#coreGlow)");
+  for (var s = 0; s < 20; s++) {
+    var a = Math.random() * Math.PI * 2, r = 60 + Math.random() * 430;
+    gFx.append("circle")
+      .attr("cx", CX + Math.cos(a) * r).attr("cy", CY + Math.sin(a) * r)
+      .attr("r", 0.5 + Math.random() * 1.7).attr("fill", "#8fb6ff")
+      .attr("opacity", 0.05 + Math.random() * 0.16);
+  }
+  gRings.selectAll("circle").data([170, 340, 460]).join("circle")
+    .attr("cx", CX).attr("cy", CY).attr("r", function (d) { return d; })
+    .attr("fill", "none").attr("stroke", "rgba(125,160,255,.10)")
+    .attr("stroke-dasharray", "3 7").attr("stroke-width", 1);
+
+  /* ---------------- 渲染 ---------------- */
+  function draw(data) {
+    var root = layout(data);
+    var nodes = root.descendants();
+    var links = linkGeometry(nodes);
+
+    /* 头部统计 */
+    d3.select("#sub").text(
+      "一级 " + 1 + " 项 · 二级 " + data.children.length + " 项 · 三级 " +
+      nodes.filter(function (d) { return d.depth === 2; }).length + " 项 · 共 " + nodes.length + " 项"
+    );
+
+    /* 图例（用层级节点，携带 branch 编号） */
+    var legend = d3.select("#legend").selectAll(".legend-item").data(root.children).join("div")
+      .attr("class", "legend-item");
+    legend.selectAll("*").remove();
+    legend.each(function (d) {
+      d3.select(this).append("span").attr("class", "sw").style("background", branchColor(d.branch));
+      d3.select(this).append("span").text(d.data.name);
+    });
+
+    /* 数据表格 */
+    var rows = nodes.map(function (d) {
+      return {
+        level: d.depth === 0 ? "一级" : d.depth === 1 ? "二级" : "三级",
+        name: d.data.name,
+        branch: d.depth === 0 ? "—" : (d.depth === 1 ? d.data.name : d.parent.data.name),
+        color: d.branch >= 0 ? branchColor(d.branch) : "#4de2ff"
+      };
+    });
+    var tr = d3.select("#dataTable tbody").selectAll("tr").data(rows).join("tr");
+    tr.selectAll("*").remove();
+    tr.each(function (d) {
+      d3.select(this)
+        .append("td").append("span").attr("class", "badge").text(d.level);
+      d3.select(this).append("td").text(d.name);
+      var td = d3.select(this).append("td");
+      if (d.branch !== "—") td.append("span").attr("class", "sw").style("background", d.color);
+      td.append("span").text(d.branch);
+    });
+
+    /* 连线 */
+    gLinks.selectAll("path.link").remove();
+    var pathSel = gLinks.selectAll("path.link").data(links).join("path")
+      .attr("class", "link").attr("d", function (d) { return d.path; })
+      .attr("fill", "none")
+      .attr("stroke", function (d) { return branchColor(d.branch); })
+      .attr("stroke-opacity", function (d) { return d.depth === 1 ? 0.6 : 0.38; })
+      .attr("stroke-width", 1.4);
+
+    /* 节点 */
+    gNodes.selectAll(".node").remove();
+    var sel = gNodes.selectAll(".node").data(nodes).join("g")
+      .attr("class", "node");
+
+    /* 核心节点 */
+    sel.filter(function (d) { return d.depth === 0; }).each(function (d) {
+      var g = d3.select(this);
+      g.append("circle").attr("cx", CX).attr("cy", CY).attr("r", ROOT_R + 16)
+        .attr("fill", "url(#coreGlow)").attr("filter", "url(#soft)").attr("opacity", .8);
+      g.append("circle").attr("cx", CX).attr("cy", CY).attr("r", ROOT_R)
+        .attr("fill", "url(#rootGrad)").attr("filter", "url(#glow)");
+      g.append("circle").attr("cx", CX).attr("cy", CY).attr("r", ROOT_R)
+        .attr("fill", "none").attr("stroke", "rgba(255,255,255,.28)").attr("stroke-width", 1);
+      g.append("text").attr("x", CX).attr("y", CY).attr("dy", ".34em")
+        .attr("text-anchor", "middle").attr("class", "root-text").text(d.data.name);
+    });
+
+    /* 二级：药丸卡片 */
+    sel.filter(function (d) { return d.depth === 1; }).each(function (d) {
+      var g = d3.select(this), c = branchColor(d.branch);
+      g.append("circle").attr("cx", d.cx).attr("cy", d.cy)
+        .attr("r", Math.max(d.bw, d.bh) / 2 * 1.12).attr("fill", c).attr("opacity", .10).attr("filter", "url(#soft)");
+      g.append("rect").attr("class", "pill")
+        .attr("x", d.cx - d.bw / 2).attr("y", d.cy - d.bh / 2)
+        .attr("width", d.bw).attr("height", d.bh).attr("rx", 20)
+        .attr("fill", hexA(c, .12)).attr("stroke", c).attr("stroke-width", 1);
+      g.append("text").attr("class", "pill-text").attr("x", d.cx).attr("y", d.cy).attr("dy", ".34em")
+        .attr("text-anchor", "middle").text(d.data.name);
+    });
+
+    /* 三级：小药丸卡片（与二级同款背景，略小） */
+    sel.filter(function (d) { return d.depth === 2; }).each(function (d) {
+      var g = d3.select(this), c = branchColor(d.branch);
+      g.append("rect").attr("class", "leaf-pill")
+        .attr("x", d.cx - d.bw / 2).attr("y", d.cy - d.bh / 2)
+        .attr("width", d.bw).attr("height", d.bh).attr("rx", 15)
+        .attr("fill", hexA(c, .10)).attr("stroke", c).attr("stroke-width", 1)
+        .attr("stroke-opacity", .7);
+      g.append("text").attr("class", "leaf-pill-text").attr("x", d.cx).attr("y", d.cy).attr("dy", ".34em")
+        .attr("text-anchor", "middle").text(d.data.name);
+    });
+  }
+
+  /* ---------------- 事件 ---------------- */
+  var current = INITIAL;
+  draw(current);
+
+  d3.select("#reroll").on("click", function () {
+    current = randomData();
+    draw(current);
+  });
+  d3.select("#toggleTable").on("click", function () {
+    var wrap = document.getElementById("tableWrap");
+    var isHidden = wrap.hidden;
+    wrap.hidden = !isHidden;
+    d3.select(this).text(isHidden ? "收起表格" : "数据表格");
+    if (isHidden) wrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  });
+})();
+</script>
+</body>
+</html>
