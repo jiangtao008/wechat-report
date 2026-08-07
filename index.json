@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-07T12:00:00Z",
+  "updated": "2026-08-07T08:39:46Z",
   "groups": [
     {
       "name": "Tesla特特特能说",
@@ -18,11 +18,6 @@
           "title": "Tesla特特特能说",
           "file": "report/Tesla特特特能说/Tesla特特特能说_20260807.html",
           "meta": "Tesla特特特能说 · Tesla特特特能说_20260807.html"
-        },
-        {
-          "title": "Tesla特特特能说",
-          "file": "report/Tesla特特特能说/Tesla特特特能说_群聊周报.html",
-          "meta": "Tesla特特特能说 · Tesla特特特能说_群聊周报.html"
         }
       ]
     },
@@ -51,6 +46,11 @@
       "files": [
         {
           "title": "湖南露营学院",
+          "file": "report/湖南露营学院/湖南露营学院_20260807.html",
+          "meta": "湖南露营学院 · 湖南露营学院_20260807.html"
+        },
+        {
+          "title": "湖南露营学院",
           "file": "report/湖南露营学院/湖南露营学院_群聊周报.html",
           "meta": "湖南露营学院 · 湖南露营学院_群聊周报.html"
         }
@@ -68,11 +68,6 @@
           "title": "长沙正能量搭子群",
           "file": "report/长沙正能量搭子群/长沙正能量搭子群_20260807.html",
           "meta": "长沙正能量搭子群 · 长沙正能量搭子群_20260807.html"
-        },
-        {
-          "title": "长沙正能量搭子群",
-          "file": "report/长沙正能量搭子群/长沙正能量搭子群_周报.html",
-          "meta": "长沙正能量搭子群 · 长沙正能量搭子群_周报.html"
         }
       ]
     },
